@@ -1,6 +1,9 @@
 # Dependencies & build output
 node_modules
 dist
+
+# Local app data (Term Anchor file persistence)
+data/*.json
 dist-ssr
 *.local
 

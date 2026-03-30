@@ -11,7 +11,7 @@ import {
 } from '@/lib/types'
 
 export function SettingsPage() {
-  const { state, setState } = useAppState()
+  const { state, setState, persistenceBackend } = useAppState()
   const fileRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
 
@@ -180,9 +180,23 @@ export function SettingsPage() {
       <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
         <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Backup</h3>
         <p className="text-sm text-gs-muted leading-relaxed">
-          Export your data as JSON. Store it somewhere safe. Import replaces everything in this browser
-          with the file contents.
+          Export your data as JSON. Store it somewhere safe. Import replaces your current saved data with
+          the file contents.
         </p>
+        {persistenceBackend === 'api' && (
+          <p className="text-sm text-gs-muted leading-relaxed">
+            With the local Term Anchor server, your data is kept in the app folder as{' '}
+            <span className="font-mono text-gs-text/90">data/term-anchor-state.json</span>. Any browser you
+            open to the same address shares that file, so switching browsers does not reset your progress.
+          </p>
+        )}
+        {persistenceBackend === 'local' && (
+          <p className="text-sm text-gs-muted leading-relaxed">
+            This session is using browser storage only (for example static hosting or opening the built files
+            without the local server). Use <span className="font-mono text-gs-text/90">Start-TermAnchor.cmd</span>{' '}
+            for a disk-backed copy you can share across browsers.
+          </p>
+        )}
         <div className="flex flex-wrap gap-3">
           <button
             type="button"

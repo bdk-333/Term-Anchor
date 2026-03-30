@@ -40,6 +40,12 @@ body {
   min-height: 100vh;
 }
 
+.gs-app-boot {
+  font-family: var(--font-sans);
+  background: linear-gradient(180deg, #181820 0%, #13131a 38%, #0e0e14 100%);
+  background-attachment: fixed;
+}
+
 /* Centered column + safe padding (matches v2 .container + body padding) */
 .gs-container {
   width: 100%;

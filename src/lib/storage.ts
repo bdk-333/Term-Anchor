@@ -49,7 +49,7 @@ export function createDefaultState(): AppState {
   }
 }
 
-function migrate(raw: unknown): AppState {
+export function migrate(raw: unknown): AppState {
   if (!raw || typeof raw !== 'object') return createDefaultState()
   const o = raw as Record<string, unknown>
   const sv = o.schemaVersion
@@ -81,7 +81,8 @@ function migrate(raw: unknown): AppState {
   return state
 }
 
-export function loadState(): AppState {
+/** Browser-only storage (GitHub Pages, file://, or fallback when the local server is down). */
+export function loadBrowserState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return createDefaultState()
@@ -91,7 +92,7 @@ export function loadState(): AppState {
   }
 }
 
-export function saveState(state: AppState): void {
+export function saveBrowserState(state: AppState): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
