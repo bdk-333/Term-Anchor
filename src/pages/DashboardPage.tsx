@@ -3,12 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { DaySectionsEditor } from '@/components/DaySectionsEditor'
 import { GlassStatCard } from '@/components/GlassStatCard'
 import { useAppState } from '@/context/AppStateContext'
-import {
-  MIN_LOG_WORDS_FOR_SAVE,
-  canSaveToday,
-  combinedSectionText,
-  countWords,
-} from '@/lib/daySections'
+import { MIN_LOG_WORDS_FOR_SAVE, canSaveToday, dailyLogMeetsSaveRule } from '@/lib/daySections'
 import { daysUntil, semesterProgress, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
 import type { AppState, DaySection } from '@/lib/types'
@@ -65,10 +60,6 @@ export function DashboardPage() {
   const streak = streakCount(state, today)
   const pips = streakPips(state, today)
 
-  const daysLogged = useMemo(
-    () => Object.values(state.daySaved).filter(Boolean).length,
-    [state.daySaved],
-  )
   const tasksDone = useMemo(() => countTasksDone(state), [state.tasksByDay])
 
   const streakDesc =
@@ -81,7 +72,7 @@ export function DashboardPage() {
   const intentionSections = state.dayIntentSections[todayKey] ?? []
   const logSections = state.dayLogSections[todayKey] ?? []
   const dayMarked = !!state.daySaved[todayKey]
-  const logWordCount = useMemo(() => countWords(combinedSectionText(logSections)), [logSections])
+  const logQualifies = useMemo(() => dailyLogMeetsSaveRule(logSections), [logSections])
   const saveReadiness = useMemo(() => canSaveToday(state, todayKey), [state, todayKey])
 
   function patchTodayTasks(items: typeof bucket) {
@@ -188,9 +179,8 @@ export function DashboardPage() {
           </div>
         </header>
 
-        <div className="gs-stat-grid grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="gs-stat-grid grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           <GlassStatCard label="Days left" value={daysLeftDisplay ?? '—'} variant="lime" />
-          <GlassStatCard label="Days logged" value={daysLogged} variant="cyan" />
           <GlassStatCard label="Tasks done" value={tasksDone} variant="white" />
           <GlassStatCard label="Streak" value={streak} variant="red" />
         </div>
@@ -318,23 +308,36 @@ export function DashboardPage() {
               addSectionLabel="Add log section"
             />
             <p className="font-mono text-[10px] text-gs-muted leading-relaxed">
-              To save today: mark at least one task done above, and write at least {MIN_LOG_WORDS_FOR_SAVE}{' '}
-              words across log titles and details (currently {logWordCount}). Habits are optional.
+              To save today: mark at least one task done, and add a daily log section with a{' '}
+              <strong className="text-gs-text/80 font-normal">title</strong> plus at least{' '}
+              {MIN_LOG_WORDS_FOR_SAVE} words in that section&apos;s{' '}
+              <strong className="text-gs-text/80 font-normal">details</strong> (title words don&apos;t
+              count). Habits are optional.
+              {!logQualifies && logSections.length > 0 ? (
+                <span className="block mt-1 text-gs-accent2/90">
+                  Still needed: a titled section with a detailed write-up.
+                </span>
+              ) : null}
             </p>
           </div>
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-4">
-              <button
-                type="button"
-                onClick={saveDay}
-                disabled={dayMarked || !saveReadiness.ok}
-                className="gs-glass-btn-primary font-mono text-sm uppercase tracking-wider px-6 py-3 text-white disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none"
-              >
-                Save today
-              </button>
-              {dayMarked && (
-                <span className="font-mono text-xs text-gs-success">This day is marked complete.</span>
+              {!dayMarked ? (
+                <button
+                  type="button"
+                  onClick={saveDay}
+                  disabled={!saveReadiness.ok}
+                  className="gs-glass-btn-primary font-mono text-sm uppercase tracking-wider px-6 py-3 text-white disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none"
+                >
+                  Save today
+                </button>
+              ) : (
+                <p className="font-mono text-xs text-gs-success leading-relaxed max-w-xl">
+                  This day is saved. You can keep editing intentions, daily log, and tasks — everything still
+                  syncs automatically. Open <strong className="text-gs-accent">Week → Before</strong> anytime
+                  to view this day as a snapshot.
+                </p>
               )}
             </div>
             {!dayMarked && !saveReadiness.ok && (

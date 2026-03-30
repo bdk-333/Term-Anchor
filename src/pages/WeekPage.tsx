@@ -13,11 +13,12 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import { addDays, addWeeks } from 'date-fns'
 import { useMemo, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAppState } from '@/context/AppStateContext'
 import { weekDayKeys, weekStartMonday, weekStartKey, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
 import type { TaskItem } from '@/lib/types'
+import { isValidDateKey } from '@/lib/streak'
 
 /** ~3 months of extra days after the visible week (Mon–Sun). */
 const BEYOND_DAY_COUNT = 90
@@ -159,10 +160,20 @@ function DayColumn({
   )
 }
 
+function neonRangeBtn(active: boolean) {
+  return [
+    'gs-glass-panel gs-glass-panel--tilt-none px-3 py-2 font-mono text-xs rounded-lg border transition-all',
+    active
+      ? 'text-[#39ff14] border-[#39ff14]/55 bg-[#39ff14]/[0.14] shadow-[0_0_26px_-6px_rgba(57,255,20,0.5)] ring-1 ring-[#39ff14]/40 font-semibold'
+      : 'border-[#39ff14]/22 text-[#5cee5c] hover:border-[#39ff14]/48 hover:text-[#84ff84] hover:shadow-[0_0_20px_-8px_rgba(57,255,20,0.38)]',
+  ].join(' ')
+}
+
 export function WeekPage() {
   const { state, setState } = useAppState()
   const [weekOffset, setWeekOffset] = useState(0)
   const [showBeyond, setShowBeyond] = useState(false)
+  const [showBefore, setShowBefore] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
 
   if (!state.profile.onboardingComplete) {
@@ -185,6 +196,17 @@ export function WeekPage() {
   )
 
   const weekIntent = state.weekIntentByWeekStart[wk] ?? ''
+
+  const loggedKeysDescending = useMemo(
+    () =>
+      Object.entries(state.daySaved)
+        .filter(([, v]) => v)
+        .map(([k]) => k)
+        .filter((k) => isValidDateKey(k))
+        .sort((a, b) => b.localeCompare(a)),
+    [state.daySaved],
+  )
+  const daysLogged = loggedKeysDescending.length
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
@@ -290,10 +312,25 @@ export function WeekPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gs-text drop-shadow-[0_0_20px_rgba(255,255,255,0.06)]">
-          Weekly planner
-        </h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gs-text drop-shadow-[0_0_20px_rgba(255,255,255,0.06)]">
+            Weekly planner
+          </h2>
+          <p className="font-mono text-[11px] text-gs-muted mt-1.5 max-w-md leading-relaxed">
+            Days logged: <span className="text-gs-text/90">{daysLogged}</span>
+            {daysLogged > 0
+              ? ' — open Before to revisit any saved day (tasks, intentions, log).'
+              : ' — save a day on Today to build history.'}
+          </p>
+        </div>
         <div className="flex flex-wrap gap-2 font-mono text-xs">
+          <button
+            type="button"
+            className={neonRangeBtn(showBefore)}
+            onClick={() => setShowBefore((v) => !v)}
+          >
+            Before
+          </button>
           <button
             type="button"
             className={`${navBase} border-white/10 text-gs-muted hover:border-gs-accent/40 hover:text-gs-text`}
@@ -321,11 +358,7 @@ export function WeekPage() {
           </button>
           <button
             type="button"
-            className={
-              showBeyond
-                ? `${navBase} font-semibold text-gs-accent border-gs-accent/45 shadow-[0_0_20px_-6px_rgba(232,255,71,0.25)] bg-gs-accent/10`
-                : `${navBase} border-white/10 text-gs-muted hover:border-gs-accent/40 hover:text-gs-text`
-            }
+            className={neonRangeBtn(showBeyond)}
             onClick={() => setShowBeyond((v) => !v)}
           >
             Beyond
@@ -373,9 +406,48 @@ export function WeekPage() {
           })}
         </div>
 
+        {showBefore && (
+          <div className="mt-8 space-y-3">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#5cee5c]">
+              Before · all logged days
+            </p>
+            {loggedKeysDescending.length === 0 ? (
+              <p className="font-mono text-xs text-gs-muted">No saved days yet.</p>
+            ) : (
+              <div className="flex gap-2.5 items-stretch overflow-x-auto pb-3 gs-week-scroller min-h-0">
+                {loggedKeysDescending.map((k) => {
+                  const d = new Date(`${k}T12:00:00`)
+                  return (
+                    <div
+                      key={k}
+                      className="shrink-0 w-[min(44vw,168px)] sm:w-[172px] flex flex-col gs-glass-panel p-3 border border-[#39ff14]/15 shadow-[0_0_18px_-10px_rgba(57,255,20,0.25)]"
+                    >
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">
+                        {d.toLocaleDateString(undefined, { weekday: 'short' })}
+                      </p>
+                      <p className="font-mono text-xl font-bold text-gs-text leading-tight mt-1">
+                        {d.getDate()}
+                      </p>
+                      <p className="font-mono text-[9px] text-gs-muted/90 mt-0.5">
+                        {d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                      </p>
+                      <Link
+                        to={`/day/${k}`}
+                        className="mt-auto pt-3 font-mono text-[10px] uppercase tracking-wider text-center py-2 rounded-md border border-[#39ff14]/35 text-[#7fff7f] hover:bg-[#39ff14]/10 hover:border-[#39ff14]/55 hover:shadow-[0_0_16px_-6px_rgba(57,255,20,0.35)] transition-all"
+                      >
+                        View
+                      </Link>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {showBeyond && (
           <div className="mt-8 space-y-3">
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-gs-muted">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#5cee5c]">
               Beyond · next {BEYOND_DAY_COUNT} days after this week
             </p>
             <div className="flex gap-2.5 items-stretch overflow-x-auto pb-3 gs-week-scroller min-h-0">
@@ -408,9 +480,11 @@ export function WeekPage() {
         </DragOverlay>
       </DndContext>
 
-      <p className="font-mono text-[10px] text-gs-muted">
-        Drag tasks between any visible days. Open <strong className="text-gs-muted">Beyond</strong> for the
-        next ~3 months after the week above. Day types (campus / home / explore) arrive in a future update.
+      <p className="font-mono text-[10px] text-gs-muted leading-relaxed">
+        Drag tasks between any visible days.{' '}
+        <strong className="text-[#6dff6d]">Before</strong> lists every saved day;{' '}
+        <strong className="text-[#6dff6d]">Beyond</strong> adds the next ~3 months after this week. Day types
+        (campus / home / explore) arrive in a future update.
       </p>
     </div>
   )

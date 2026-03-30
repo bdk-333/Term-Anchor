@@ -3,6 +3,7 @@ import { Layout } from '@/components/Layout'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { DaySnapshotPage } from '@/pages/DaySnapshotPage'
 import { WeekPage } from '@/pages/WeekPage'
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<DashboardPage />} />
         <Route path="week" element={<WeekPage />} />
+        <Route path="day/:dateKey" element={<DaySnapshotPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
