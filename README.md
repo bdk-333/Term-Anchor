@@ -2,20 +2,7 @@
 
 A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, weekly planner with drag-and-drop, habits, and streaks. **No server.** All data stays in your browser (`localStorage`). Use **Settings → Export JSON** for backups.
 
-## Use on GitHub Pages (easiest for sharing)
-
-1. Push this repo to GitHub (default branch `main`).
-2. **Settings → Pages → Build and deployment**: set **Source** to **GitHub Actions**.
-3. The workflow [.github/workflows/pages.yml](.github/workflows/pages.yml) builds with `VITE_BASE: /<repository-name>/` so assets load correctly.
-
-If you rename the repository, the next deploy picks up the new name automatically. If you build Pages manually without Actions, set the same base:
-
-```bash
-set VITE_BASE=/your-repo-name/
-npm run build
-```
-
-(On PowerShell: `$env:VITE_BASE='/your-repo-name/'; npm run build`.)
+Hosting (e.g. GitHub Pages or another static host) will be wired up once the app is closer to a public release. For now, run it locally (see below).
 
 ## Develop locally
 
