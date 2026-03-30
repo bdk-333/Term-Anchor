@@ -1,0 +1,31 @@
+# Dependencies & build output
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Local notes and prototypes (not published)
+info/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor (optional local settings)
+.idea
+.vscode/*
+!.vscode/extensions.json
+
+# TypeScript cache
+*.tsbuildinfo

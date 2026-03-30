@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Syne', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+
+  /* Softer than pure black — closer to graduation_tracker_v2 feel */
+  --color-gs-bg: #12121a;
+  --color-gs-surface: #1a1a24;
+  --color-gs-surface-muted: #15151c;
+  --color-gs-border: #2e2e3a;
+  --color-gs-accent: #e8ff47;
+  --color-gs-accent2: #ff6b35;
+  --color-gs-text: #e8e8ee;
+  --color-gs-muted: #8a8a9a;
+  --color-gs-danger: #ff5555;
+  --color-gs-success: #5ee89e;
+  /* Lane accents (v2) */
+  --color-gs-lane-0: #ff6b35;
+  --color-gs-lane-1: #47b8ff;
+  --color-gs-lane-2: #b847ff;
+  --color-gs-lane-3: #e8ff47;
+}
+
+html {
+  @apply antialiased;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-gs-text);
+  background: linear-gradient(180deg, #181820 0%, #13131a 38%, #0e0e14 100%);
+  background-attachment: fixed;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Centered column + safe padding (matches v2 .container + body padding) */
+.gs-container {
+  width: 100%;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .gs-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Onboarding: extra vertical breathing room */
+.gs-onboarding-shell {
+  min-height: 100vh;
+  padding-top: 2.5rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 640px) {
+  .gs-onboarding-shell {
+    padding-top: 3.5rem;
+    padding-bottom: 5.5rem;
+  }
+}
+
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-gs-accent;
+}
