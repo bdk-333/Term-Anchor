@@ -337,15 +337,15 @@ export function DashboardPage() {
               const checked = !!(state.habitChecks[todayKey]?.[h.id])
               return (
                 <li key={h.id}>
-                  <label className="flex items-center gap-3 cursor-pointer group">
+                  <label className="gs-habit-label group">
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleHabit(h.id)}
-                      className="w-4 h-4 accent-gs-accent rounded border-gs-border"
                     />
+                    <span className="gs-habit-box" aria-hidden />
                     <span
-                      className={`text-sm leading-snug ${checked ? 'text-gs-muted line-through' : 'text-gs-text'}`}
+                      className={`text-sm leading-snug flex-1 ${checked ? 'text-gs-muted line-through' : 'text-gs-text'}`}
                     >
                       {h.label}
                     </span>

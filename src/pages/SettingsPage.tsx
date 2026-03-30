@@ -98,7 +98,7 @@ export function SettingsPage() {
         setState(next)
         setImportError(null)
       } catch {
-        setImportError('Could not read that file. Use a Grad Sprint JSON export.')
+        setImportError('Could not read that file. Use a Term Anchor JSON export.')
       }
     }
     reader.readAsText(f)

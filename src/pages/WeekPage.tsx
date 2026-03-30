@@ -11,13 +11,16 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { addWeeks } from 'date-fns'
-import { useState } from 'react'
+import { addDays, addWeeks } from 'date-fns'
+import { useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppState } from '@/context/AppStateContext'
 import { weekDayKeys, weekStartMonday, weekStartKey, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
 import type { TaskItem } from '@/lib/types'
+
+/** ~3 months of extra days after the visible week (Mon–Sun). */
+const BEYOND_DAY_COUNT = 90
 
 function SortableTaskRow({
   task,
@@ -64,6 +67,7 @@ function DayColumn({
   categoryLabels,
   onAdd,
   defaultCategoryId,
+  compact,
 }: {
   dateKey: string
   isToday: boolean
@@ -71,6 +75,8 @@ function DayColumn({
   categoryLabels: Map<string, string>
   onAdd: (categoryId: string, text: string) => void
   defaultCategoryId: string
+  /** Narrower columns in the “Beyond” strip */
+  compact?: boolean
 }) {
   const ids = items.map((t) => t.id)
   const [cat, setCat] = useState(defaultCategoryId)
@@ -78,9 +84,9 @@ function DayColumn({
 
   return (
     <div
-      className={`gs-glass-panel flex flex-col w-full h-full min-h-[300px] max-h-[min(68vh,520px)] p-3 ${
+      className={`gs-glass-panel flex flex-col w-full h-full min-h-[280px] max-h-[min(68vh,520px)] p-3 ${
         isToday ? 'ring-1 ring-gs-accent/35 shadow-[0_0_24px_-8px_rgba(232,255,71,0.25)]' : ''
-      }`}
+      } ${compact ? 'min-h-[260px] max-h-[min(62vh,480px)]' : ''}`}
       data-day={dateKey}
     >
       <div className="shrink-0 mb-3">
@@ -90,6 +96,11 @@ function DayColumn({
         <p className="font-mono text-lg font-bold text-gs-text drop-shadow-[0_0_12px_rgba(255,255,255,0.08)]">
           {new Date(dateKey + 'T12:00:00').getDate()}
         </p>
+        {compact && (
+          <p className="font-mono text-[9px] text-gs-muted/90 mt-0.5">
+            {new Date(dateKey + 'T12:00:00').toLocaleDateString(undefined, { month: 'short' })}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col flex-1 min-h-0 min-w-0">
@@ -124,7 +135,7 @@ function DayColumn({
           value={cat}
           onChange={(e) => setCat(e.target.value)}
           aria-label="Category for new task"
-          className="gs-glass-input px-2 py-1.5 font-mono text-[10px] text-gs-text"
+          className="gs-native-select"
         >
           {Array.from(categoryLabels.entries()).map(([id, label]) => (
             <option key={id} value={id}>
@@ -151,6 +162,7 @@ function DayColumn({
 export function WeekPage() {
   const { state, setState } = useAppState()
   const [weekOffset, setWeekOffset] = useState(0)
+  const [showBeyond, setShowBeyond] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
 
   if (!state.profile.onboardingComplete) {
@@ -162,6 +174,16 @@ export function WeekPage() {
   const wk = weekStartKey(monday)
   const todayKey = toDateKey(new Date())
 
+  const beyondKeys = useMemo(() => {
+    const start = addDays(monday, 7)
+    return Array.from({ length: BEYOND_DAY_COUNT }, (_, i) => toDateKey(addDays(start, i)))
+  }, [monday])
+
+  const dndKeys = useMemo(
+    () => (showBeyond ? [...keys, ...beyondKeys] : keys),
+    [keys, beyondKeys, showBeyond],
+  )
+
   const weekIntent = state.weekIntentByWeekStart[wk] ?? ''
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
@@ -170,7 +192,7 @@ export function WeekPage() {
   const defaultCategoryId = state.taskCategories[0]?.id ?? ''
 
   function colOf(taskId: string): string | null {
-    for (const k of keys) {
+    for (const k of dndKeys) {
       if ((state.tasksByDay[k]?.items ?? []).some((t) => t.id === taskId)) return k
     }
     return null
@@ -189,7 +211,7 @@ export function WeekPage() {
 
     const activeCol = colOf(aid)
     if (!activeCol) return
-    const overCol = keys.includes(oid) ? oid : colOf(oid)
+    const overCol = dndKeys.includes(oid) ? oid : colOf(oid)
     if (!overCol) return
 
     const oldActiveItems = state.tasksByDay[activeCol]?.items ?? []
@@ -214,7 +236,7 @@ export function WeekPage() {
     const without = oldActiveItems.filter((t) => t.id !== aid)
     const dest = [...(state.tasksByDay[overCol]?.items ?? [])]
     let newIndex: number
-    if (keys.includes(oid)) {
+    if (dndKeys.includes(oid)) {
       newIndex = dest.length
     } else {
       const i = dest.findIndex((t) => t.id === oid)
@@ -257,12 +279,13 @@ export function WeekPage() {
   const activeTask =
     activeId == null
       ? null
-      : keys
+      : dndKeys
           .flatMap((k) => state.tasksByDay[k]?.items ?? [])
           .find((t) => t.id === activeId) ?? null
 
-  const navBtn =
-    'gs-glass-panel gs-glass-panel--tilt-none px-3 py-2 font-mono text-xs rounded-lg border border-white/10 hover:border-gs-accent/40 text-gs-muted hover:text-gs-text transition-all'
+  const navBase =
+    'gs-glass-panel gs-glass-panel--tilt-none px-3 py-2 font-mono text-xs rounded-lg border transition-all'
+  const thisWeekActive = weekOffset === 0
 
   return (
     <div className="space-y-8">
@@ -270,15 +293,42 @@ export function WeekPage() {
         <h2 className="text-2xl font-bold text-gs-text drop-shadow-[0_0_20px_rgba(255,255,255,0.06)]">
           Weekly planner
         </h2>
-        <div className="flex gap-2 font-mono text-xs">
-          <button type="button" className={navBtn} onClick={() => setWeekOffset((o) => o - 1)}>
+        <div className="flex flex-wrap gap-2 font-mono text-xs">
+          <button
+            type="button"
+            className={`${navBase} border-white/10 text-gs-muted hover:border-gs-accent/40 hover:text-gs-text`}
+            onClick={() => setWeekOffset((o) => o - 1)}
+          >
             Prev
           </button>
-          <button type="button" className={navBtn} onClick={() => setWeekOffset(0)}>
+          <button
+            type="button"
+            className={
+              thisWeekActive
+                ? `${navBase} font-bold text-white border-white/40 shadow-[0_0_22px_-6px_rgba(255,255,255,0.2)] bg-white/[0.08]`
+                : `${navBase} border-white/10 text-gs-muted hover:border-gs-accent/40 hover:text-gs-text`
+            }
+            onClick={() => setWeekOffset(0)}
+          >
             This week
           </button>
-          <button type="button" className={navBtn} onClick={() => setWeekOffset((o) => o + 1)}>
+          <button
+            type="button"
+            className={`${navBase} border-white/10 text-gs-muted hover:border-gs-accent/40 hover:text-gs-text`}
+            onClick={() => setWeekOffset((o) => o + 1)}
+          >
             Next
+          </button>
+          <button
+            type="button"
+            className={
+              showBeyond
+                ? `${navBase} font-semibold text-gs-accent border-gs-accent/45 shadow-[0_0_20px_-6px_rgba(232,255,71,0.25)] bg-gs-accent/10`
+                : `${navBase} border-white/10 text-gs-muted hover:border-gs-accent/40 hover:text-gs-text`
+            }
+            onClick={() => setShowBeyond((v) => !v)}
+          >
+            Beyond
           </button>
         </div>
       </div>
@@ -322,6 +372,33 @@ export function WeekPage() {
             )
           })}
         </div>
+
+        {showBeyond && (
+          <div className="mt-8 space-y-3">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-gs-muted">
+              Beyond · next {BEYOND_DAY_COUNT} days after this week
+            </p>
+            <div className="flex gap-2.5 items-stretch overflow-x-auto pb-3 gs-week-scroller min-h-0">
+              {beyondKeys.map((dateKey) => {
+                const items = state.tasksByDay[dateKey]?.items ?? []
+                return (
+                  <div key={dateKey} className="shrink-0 w-[132px] sm:w-[148px] flex">
+                    <DayColumn
+                      dateKey={dateKey}
+                      isToday={dateKey === todayKey}
+                      items={items}
+                      categoryLabels={categoryLabels}
+                      defaultCategoryId={defaultCategoryId}
+                      onAdd={(cid, text) => addTask(dateKey, cid, text)}
+                      compact
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <DragOverlay>
           {activeTask ? (
             <div className="rounded-md border border-gs-accent/50 bg-gs-surface/95 px-3 py-2 text-sm text-gs-text shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-[220px]">
@@ -332,7 +409,8 @@ export function WeekPage() {
       </DndContext>
 
       <p className="font-mono text-[10px] text-gs-muted">
-        Drag tasks between days. Day types (campus / home / explore) arrive in a future update.
+        Drag tasks between any visible days. Open <strong className="text-gs-muted">Beyond</strong> for the
+        next ~3 months after the week above. Day types (campus / home / explore) arrive in a future update.
       </p>
     </div>
   )

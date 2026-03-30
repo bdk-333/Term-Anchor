@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { APP_DISPLAY_NAME } from '@/config/branding'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -11,13 +12,24 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
 export function Layout() {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-40 gs-glass-header-bar">
+      <header className="sticky top-0 z-[100] isolate gs-glass-header-bar">
         <div className="gs-container pt-8 sm:pt-10 pb-4">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-1">
             Daily command center
           </p>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gs-text">
-            Grad <span className="text-gs-accent">Sprint</span>
+            {(() => {
+              const parts = APP_DISPLAY_NAME.trim().split(/\s+/)
+              const last = parts.pop() ?? APP_DISPLAY_NAME
+              const rest = parts.join(' ')
+              return rest ? (
+                <>
+                  {rest} <span className="text-gs-accent">{last}</span>
+                </>
+              ) : (
+                <span className="text-gs-accent">{last}</span>
+              )
+            })()}
           </h1>
         </div>
         <div className="border-b border-white/[0.08]">
@@ -34,7 +46,7 @@ export function Layout() {
           </div>
         </div>
       </header>
-      <main className="flex-1 gs-container py-8 sm:py-10 pb-16 sm:pb-20">
+      <main className="gs-main-stack flex-1 gs-container py-8 sm:py-10 pb-16 sm:pb-20">
         <Outlet />
       </main>
     </div>

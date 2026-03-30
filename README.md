@@ -1,4 +1,4 @@
-# Grad Sprint
+# Term Anchor
 
 A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, weekly planner with drag-and-drop, habits, and streaks. **No server.** All data stays in your browser (`localStorage`). Use **Settings → Export JSON** for backups.
 

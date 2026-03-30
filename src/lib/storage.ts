@@ -104,7 +104,7 @@ export function importStateJson(json: string): AppState {
   return migrate(parsed)
 }
 
-export function downloadBackup(state: AppState, filename = 'grad-sprint-backup.json') {
+export function downloadBackup(state: AppState, filename = 'term-anchor-backup.json') {
   const blob = new Blob([exportStateJson(state)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
