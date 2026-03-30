@@ -44,4 +44,4 @@ Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit.
 
 ## Roadmap (v1.1)
 
-Commute / day-type planner and life / exploration list (see [info/prompt.txt](info/prompt.txt)).
+Commute / day-type planner and life / exploration list (bucket-style places and events).
