@@ -12,6 +12,9 @@ dist-ssr
 # Local notes and prototypes (not published)
 info/
 
+# Local chat / session archives (not published)
+CHAT_ARCHIVE_grad-sprint.md
+
 # Logs
 *.log
 npm-debug.log*
