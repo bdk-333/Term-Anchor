@@ -2,16 +2,16 @@ import { NavLink, Outlet } from 'react-router-dom'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'px-4 sm:px-6 py-3 font-mono text-[11px] tracking-[0.12em] uppercase transition-colors border-b-2 -mb-px bg-transparent',
+    'px-4 sm:px-6 py-3 font-mono text-[11px] tracking-[0.12em] uppercase transition-all border-b-2 -mb-px rounded-t-md',
     isActive
-      ? 'text-gs-accent border-gs-accent'
-      : 'text-gs-muted border-transparent hover:text-gs-text',
+      ? 'text-gs-accent border-gs-accent bg-white/[0.06] shadow-[0_-4px_24px_-6px_rgba(232,255,71,0.15)]'
+      : 'text-gs-muted border-transparent hover:text-gs-text hover:bg-white/[0.03]',
   ].join(' ')
 
 export function Layout() {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-40 bg-[#13131a]/90 backdrop-blur-md border-b border-gs-border/80">
+      <header className="sticky top-0 z-40 gs-glass-header-bar">
         <div className="gs-container pt-8 sm:pt-10 pb-4">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-1">
             Daily command center
@@ -20,7 +20,7 @@ export function Layout() {
             Grad <span className="text-gs-accent">Sprint</span>
           </h1>
         </div>
-        <div className="border-b border-gs-border/80">
+        <div className="border-b border-white/[0.08]">
           <div className="gs-container flex flex-wrap gap-0">
             <NavLink to="/" end className={tabClass}>
               Today

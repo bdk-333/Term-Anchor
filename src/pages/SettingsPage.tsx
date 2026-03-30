@@ -108,7 +108,7 @@ export function SettingsPage() {
     <div className="max-w-2xl space-y-12 text-gs-text">
       <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
 
-      <section className="space-y-4 rounded-lg border border-gs-border bg-gs-surface/50 p-5 sm:p-6">
+      <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
         <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Task lanes</h3>
         <p className="text-sm text-gs-muted leading-relaxed">
           Rename, add, or remove categories ({MIN_CATEGORIES}–{MAX_CATEGORIES}). Removing a lane moves its
@@ -120,7 +120,7 @@ export function SettingsPage() {
               <input
                 value={c.label}
                 onChange={(e) => updateCategory(c.id, e.target.value)}
-                className="flex-1 bg-gs-surface-muted/80 border border-gs-border rounded-md px-3 py-2 font-mono text-sm text-gs-text"
+                className="gs-glass-input flex-1 px-3 py-2 font-mono text-sm text-gs-text"
               />
               <button
                 type="button"
@@ -136,14 +136,14 @@ export function SettingsPage() {
         <button
           type="button"
           disabled={state.taskCategories.length >= MAX_CATEGORIES}
-          className="font-mono text-xs uppercase tracking-wider px-4 py-2 border border-gs-border rounded hover:border-gs-accent disabled:opacity-40"
+          className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md border border-white/12 hover:border-gs-accent/50 hover:shadow-[0_0_16px_-6px_rgba(232,255,71,0.25)] disabled:opacity-40 transition-all"
           onClick={addCategory}
         >
           Add lane
         </button>
       </section>
 
-      <section className="space-y-4 rounded-lg border border-gs-border bg-gs-surface/50 p-5 sm:p-6">
+      <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
         <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Habits</h3>
         <p className="text-sm text-gs-muted leading-relaxed">
           Daily checkboxes on Today ({MIN_HABITS}–{MAX_HABITS}).
@@ -154,7 +154,7 @@ export function SettingsPage() {
               <input
                 value={h.label}
                 onChange={(e) => updateHabit(h.id, e.target.value)}
-                className="flex-1 bg-gs-surface-muted/80 border border-gs-border rounded-md px-3 py-2 font-mono text-sm text-gs-text"
+                className="gs-glass-input flex-1 px-3 py-2 font-mono text-sm text-gs-text"
               />
               <button
                 type="button"
@@ -170,14 +170,14 @@ export function SettingsPage() {
         <button
           type="button"
           disabled={state.habits.length >= MAX_HABITS}
-          className="font-mono text-xs uppercase tracking-wider px-4 py-2 border border-gs-border rounded hover:border-gs-accent disabled:opacity-40"
+          className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md border border-white/12 hover:border-gs-accent/50 hover:shadow-[0_0_16px_-6px_rgba(232,255,71,0.25)] disabled:opacity-40 transition-all"
           onClick={addHabit}
         >
           Add habit
         </button>
       </section>
 
-      <section className="space-y-4 border border-gs-border rounded-lg p-5 sm:p-6 bg-gs-surface/50">
+      <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
         <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Backup</h3>
         <p className="text-sm text-gs-muted leading-relaxed">
           Export your data as JSON. Store it somewhere safe. Import replaces everything in this browser
@@ -187,14 +187,14 @@ export function SettingsPage() {
           <button
             type="button"
             onClick={() => downloadBackup(state)}
-            className="font-mono text-sm uppercase tracking-wider px-5 py-2.5 rounded bg-gs-accent text-gs-bg"
+            className="font-mono text-sm uppercase tracking-wider px-5 py-2.5 rounded-lg bg-gs-accent text-gs-bg shadow-[0_0_24px_-6px_rgba(232,255,71,0.5)] hover:shadow-[0_0_32px_-4px_rgba(232,255,71,0.65)] transition-shadow"
           >
             Export JSON
           </button>
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="font-mono text-sm uppercase tracking-wider px-5 py-2.5 rounded border border-gs-border hover:border-gs-accent"
+            className="font-mono text-sm uppercase tracking-wider px-5 py-2.5 rounded-lg border border-white/15 hover:border-gs-accent/50 hover:shadow-[0_0_20px_-6px_rgba(232,255,71,0.2)] transition-all"
           >
             Import JSON
           </button>
