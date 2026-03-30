@@ -1,4 +1,4 @@
-export const CURRENT_SCHEMA_VERSION = 1
+export const CURRENT_SCHEMA_VERSION = 2
 
 export const STORAGE_KEY = 'gradSprint:v1'
 
@@ -30,14 +30,17 @@ export type TaskItem = {
 
 export type Habit = { id: string; label: string }
 
+/** One titled block for a day’s intention or daily log (title + optional detail notes). */
+export type DaySection = { id: string; title: string; details: string }
+
 export type AppState = {
   schemaVersion: number
   profile: Profile
   taskCategories: TaskCategory[]
   tasksByDay: Record<string, { items: TaskItem[] }>
   weekIntentByWeekStart: Record<string, string>
-  dayIntent: Record<string, string>
-  dayLog: Record<string, string>
+  dayIntentSections: Record<string, DaySection[]>
+  dayLogSections: Record<string, DaySection[]>
   /** Explicit end-of-day save — drives streak (matches prototype `saved`) */
   daySaved: Record<string, boolean>
   habits: Habit[]

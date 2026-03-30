@@ -4,6 +4,7 @@ import {
   STORAGE_KEY,
   type Profile,
 } from './types'
+import { migrateLegacyDayStringMap } from './daySections'
 import { newId } from './id'
 
 function defaultCategories() {
@@ -41,8 +42,8 @@ export function createDefaultState(): AppState {
     taskCategories: defaultCategories(),
     tasksByDay: {},
     weekIntentByWeekStart: {},
-    dayIntent: {},
-    dayLog: {},
+    dayIntentSections: {},
+    dayLogSections: {},
     daySaved: {},
     habits: defaultHabits(),
     habitChecks: {},
@@ -60,12 +61,35 @@ export function migrate(raw: unknown): AppState {
           const n = parseInt(String(sv ?? ''), 10)
           return Number.isNaN(n) ? 0 : n
         })()
-  let state = { ...createDefaultState(), ...o, schemaVersion: v } as AppState
+  let state = { ...createDefaultState(), ...o, schemaVersion: v } as AppState & {
+    dayIntent?: Record<string, string>
+    dayLog?: Record<string, string>
+  }
 
   while (v < CURRENT_SCHEMA_VERSION) {
     v += 1
-    // future: switch(v) { case 1: ... }
-    state = { ...state, schemaVersion: v }
+    if (v === 2) {
+      const legacyIntent =
+        (o.dayIntent as Record<string, string> | undefined) ??
+        (state as { dayIntent?: Record<string, string> }).dayIntent
+      const legacyLog =
+        (o.dayLog as Record<string, string> | undefined) ??
+        (state as { dayLog?: Record<string, string> }).dayLog
+      const hasNewIntent = o.dayIntentSections != null
+      const hasNewLog = o.dayLogSections != null
+      state = {
+        ...state,
+        schemaVersion: 2,
+        dayIntentSections: hasNewIntent
+          ? (state.dayIntentSections ?? {})
+          : migrateLegacyDayStringMap(legacyIntent ?? {}),
+        dayLogSections: hasNewLog
+          ? (state.dayLogSections ?? {})
+          : migrateLegacyDayStringMap(legacyLog ?? {}),
+      }
+      delete (state as { dayIntent?: unknown }).dayIntent
+      delete (state as { dayLog?: unknown }).dayLog
+    }
   }
 
   if (!state.taskCategories?.length) state.taskCategories = defaultCategories()
@@ -73,12 +97,12 @@ export function migrate(raw: unknown): AppState {
   if (!state.profile) state.profile = emptyProfile()
   state.tasksByDay ??= {}
   state.weekIntentByWeekStart ??= {}
-  state.dayIntent ??= {}
-  state.dayLog ??= {}
+  state.dayIntentSections ??= {}
+  state.dayLogSections ??= {}
   state.daySaved ??= {}
   state.habitChecks ??= {}
 
-  return state
+  return state as AppState
 }
 
 /** Browser-only storage (GitHub Pages, file://, or fallback when the local server is down). */

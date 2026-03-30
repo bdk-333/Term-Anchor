@@ -1,10 +1,17 @@
 import { useMemo } from 'react'
 import { Navigate } from 'react-router-dom'
+import { DaySectionsEditor } from '@/components/DaySectionsEditor'
 import { GlassStatCard } from '@/components/GlassStatCard'
 import { useAppState } from '@/context/AppStateContext'
+import {
+  MIN_LOG_WORDS_FOR_SAVE,
+  canSaveToday,
+  combinedSectionText,
+  countWords,
+} from '@/lib/daySections'
 import { daysUntil, semesterProgress, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
-import type { AppState } from '@/lib/types'
+import type { AppState, DaySection } from '@/lib/types'
 import { streakCount, streakPips } from '@/lib/streak'
 
 const LANE_TITLE = [
@@ -71,9 +78,11 @@ export function DashboardPage() {
         ? 'day streak — keep going'
         : 'day streak — don’t break it'
 
-  const intention = state.dayIntent[todayKey] ?? ''
-  const log = state.dayLog[todayKey] ?? ''
+  const intentionSections = state.dayIntentSections[todayKey] ?? []
+  const logSections = state.dayLogSections[todayKey] ?? []
   const dayMarked = !!state.daySaved[todayKey]
+  const logWordCount = useMemo(() => countWords(combinedSectionText(logSections)), [logSections])
+  const saveReadiness = useMemo(() => canSaveToday(state, todayKey), [state, todayKey])
 
   function patchTodayTasks(items: typeof bucket) {
     setState((s) => ({
@@ -102,21 +111,23 @@ export function DashboardPage() {
     patchTodayTasks(bucket.filter((t) => t.id !== id))
   }
 
-  function setIntention(v: string) {
+  function setIntentionSections(next: DaySection[]) {
     setState((s) => ({
       ...s,
-      dayIntent: { ...s.dayIntent, [todayKey]: v },
+      dayIntentSections: { ...s.dayIntentSections, [todayKey]: next },
     }))
   }
 
-  function setLog(v: string) {
+  function setLogSections(next: DaySection[]) {
     setState((s) => ({
       ...s,
-      dayLog: { ...s.dayLog, [todayKey]: v },
+      dayLogSections: { ...s.dayLogSections, [todayKey]: next },
     }))
   }
 
   function saveDay() {
+    if (dayMarked) return
+    if (!canSaveToday(state, todayKey).ok) return
     setState((s) => ({
       ...s,
       daySaved: { ...s.daySaved, [todayKey]: true },
@@ -287,41 +298,51 @@ export function DashboardPage() {
           </div>
         </section>
 
-        <section className="space-y-5">
-          <label className="block space-y-2">
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted">
-              Today&apos;s intention
-            </span>
-            <textarea
-              value={intention}
-              onChange={(e) => setIntention(e.target.value)}
-              rows={3}
-              className="gs-glass-input w-full px-3 py-2.5 text-sm text-gs-text resize-y font-sans leading-relaxed"
-              placeholder="Example: Today I will finish my lab write-up and send two thoughtful job applications."
+        <section className="space-y-8">
+          <DaySectionsEditor
+            label="Today’s intention"
+            sections={intentionSections}
+            onChange={setIntentionSections}
+            titlePlaceholder="e.g. Brainstorm project ideas"
+            detailsPlaceholder="e.g. Keep scope realistic; interests: sports, finance…"
+            addSectionLabel="Add intention"
+          />
+
+          <div className="space-y-2">
+            <DaySectionsEditor
+              label="Daily log / reflection"
+              sections={logSections}
+              onChange={setLogSections}
+              titlePlaceholder="e.g. Leetcode, project brainstorm…"
+              detailsPlaceholder="What you did, problems solved, numbers, notes for tomorrow…"
+              addSectionLabel="Add log section"
             />
-          </label>
-          <label className="block space-y-2">
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted">
-              Daily log / reflection
-            </span>
-            <textarea
-              value={log}
-              onChange={(e) => setLog(e.target.value)}
-              rows={4}
-              className="gs-glass-input w-full px-3 py-2.5 text-sm text-gs-text resize-y font-sans leading-relaxed"
-              placeholder="Example: I shipped the first draft of my project, but I got distracted after lunch. Tomorrow I will block two hours before noon."
-            />
-          </label>
-          <div className="flex flex-wrap items-center gap-4">
-            <button
-              type="button"
-              onClick={saveDay}
-              className="gs-glass-btn-primary font-mono text-sm uppercase tracking-wider px-6 py-3 text-white"
-            >
-              Save today
-            </button>
-            {dayMarked && (
-              <span className="font-mono text-xs text-gs-success">This day is marked complete.</span>
+            <p className="font-mono text-[10px] text-gs-muted leading-relaxed">
+              To save today: mark at least one task done above, and write at least {MIN_LOG_WORDS_FOR_SAVE}{' '}
+              words across log titles and details (currently {logWordCount}). Habits are optional.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={saveDay}
+                disabled={dayMarked || !saveReadiness.ok}
+                className="gs-glass-btn-primary font-mono text-sm uppercase tracking-wider px-6 py-3 text-white disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none"
+              >
+                Save today
+              </button>
+              {dayMarked && (
+                <span className="font-mono text-xs text-gs-success">This day is marked complete.</span>
+              )}
+            </div>
+            {!dayMarked && !saveReadiness.ok && (
+              <ul className="font-mono text-xs text-gs-accent2/95 space-y-1 list-disc pl-5">
+                {saveReadiness.reasons.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
             )}
           </div>
         </section>
