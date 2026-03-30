@@ -38,7 +38,7 @@ function SortableTaskRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-start gap-2 rounded-md border border-gs-border bg-gs-surface-muted/90 px-2 py-2 text-sm text-gs-text"
+      className="flex items-start gap-2 rounded-md border border-white/10 bg-black/25 px-2 py-2 text-sm text-gs-text shadow-[0_2px_12px_rgba(0,0,0,0.25)] backdrop-blur-sm"
     >
       <button
         type="button"
@@ -78,30 +78,40 @@ function DayColumn({
 
   return (
     <div
-      className={`flex flex-col min-w-[240px] sm:min-w-[200px] flex-1 border border-gs-border rounded-lg bg-gs-surface/80 p-3 ${
-        isToday ? 'ring-1 ring-gs-accent/40' : ''
+      className={`gs-glass-panel flex flex-col w-full h-full min-h-[300px] max-h-[min(68vh,520px)] p-3 ${
+        isToday ? 'ring-1 ring-gs-accent/35 shadow-[0_0_24px_-8px_rgba(232,255,71,0.25)]' : ''
       }`}
       data-day={dateKey}
     >
-      <div className="mb-3">
+      <div className="shrink-0 mb-3">
         <p className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">
           {new Date(dateKey + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' })}
         </p>
-        <p className="font-mono text-lg font-bold text-gs-text">{new Date(dateKey + 'T12:00:00').getDate()}</p>
+        <p className="font-mono text-lg font-bold text-gs-text drop-shadow-[0_0_12px_rgba(255,255,255,0.08)]">
+          {new Date(dateKey + 'T12:00:00').getDate()}
+        </p>
       </div>
-      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div ref={setNodeRef} className="space-y-2 flex-1 min-h-[120px] mb-3" id={dateKey}>
-          {items.map((t) => (
-            <SortableTaskRow
-              key={t.id}
-              task={t}
-              categoryLabel={categoryLabels.get(t.categoryId) ?? '—'}
-            />
-          ))}
-        </div>
-      </SortableContext>
+
+      <div className="flex flex-col flex-1 min-h-0 min-w-0">
+        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+          <div
+            ref={setNodeRef}
+            id={dateKey}
+            className="gs-scrollbar flex-1 min-h-[72px] overflow-y-auto overflow-x-hidden space-y-2 pr-1.5 pb-2 -mr-0.5"
+          >
+            {items.map((t) => (
+              <SortableTaskRow
+                key={t.id}
+                task={t}
+                categoryLabel={categoryLabels.get(t.categoryId) ?? '—'}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </div>
+
       <form
-        className="mt-auto flex flex-col gap-2"
+        className="shrink-0 mt-2 pt-2 border-t border-white/[0.08] flex flex-col gap-2"
         onSubmit={(e) => {
           e.preventDefault()
           const fd = new FormData(e.currentTarget)
@@ -113,7 +123,8 @@ function DayColumn({
         <select
           value={cat}
           onChange={(e) => setCat(e.target.value)}
-          className="bg-gs-surface-muted/80 border border-gs-border rounded-md px-2 py-1 font-mono text-[10px] text-gs-text"
+          aria-label="Category for new task"
+          className="gs-glass-input px-2 py-1.5 font-mono text-[10px] text-gs-text"
         >
           {Array.from(categoryLabels.entries()).map(([id, label]) => (
             <option key={id} value={id}>
@@ -124,11 +135,11 @@ function DayColumn({
         <input
           name="t"
           placeholder="Add task…"
-          className="bg-gs-surface-muted/80 border border-gs-border rounded-md px-2 py-1.5 font-mono text-xs text-gs-text placeholder:text-gs-muted/80"
+          className="gs-glass-input px-2 py-1.5 font-mono text-xs text-gs-text placeholder:text-gs-muted/80"
         />
         <button
           type="submit"
-          className="font-mono text-[10px] uppercase py-1.5 border border-gs-border rounded hover:border-gs-accent text-gs-muted hover:text-gs-accent"
+          className="font-mono text-[10px] uppercase py-1.5 rounded-md border border-white/15 text-gs-muted hover:text-gs-accent hover:border-gs-accent/50 hover:shadow-[0_0_14px_-4px_rgba(232,255,71,0.35)] transition-all"
         >
           Add
         </button>
@@ -250,30 +261,23 @@ export function WeekPage() {
           .flatMap((k) => state.tasksByDay[k]?.items ?? [])
           .find((t) => t.id === activeId) ?? null
 
+  const navBtn =
+    'gs-glass-panel gs-glass-panel--tilt-none px-3 py-2 font-mono text-xs rounded-lg border border-white/10 hover:border-gs-accent/40 text-gs-muted hover:text-gs-text transition-all'
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">Weekly planner</h2>
+        <h2 className="text-2xl font-bold text-gs-text drop-shadow-[0_0_20px_rgba(255,255,255,0.06)]">
+          Weekly planner
+        </h2>
         <div className="flex gap-2 font-mono text-xs">
-          <button
-            type="button"
-            className="px-3 py-2 border border-gs-border rounded hover:border-gs-accent"
-            onClick={() => setWeekOffset((o) => o - 1)}
-          >
+          <button type="button" className={navBtn} onClick={() => setWeekOffset((o) => o - 1)}>
             Prev
           </button>
-          <button
-            type="button"
-            className="px-3 py-2 border border-gs-border rounded hover:border-gs-accent"
-            onClick={() => setWeekOffset(0)}
-          >
+          <button type="button" className={navBtn} onClick={() => setWeekOffset(0)}>
             This week
           </button>
-          <button
-            type="button"
-            className="px-3 py-2 border border-gs-border rounded hover:border-gs-accent"
-            onClick={() => setWeekOffset((o) => o + 1)}
-          >
+          <button type="button" className={navBtn} onClick={() => setWeekOffset((o) => o + 1)}>
             Next
           </button>
         </div>
@@ -287,7 +291,7 @@ export function WeekPage() {
           value={weekIntent}
           onChange={(e) => setWeekIntent(e.target.value)}
           rows={2}
-          className="w-full bg-gs-surface/90 border border-gs-border rounded-lg px-3 py-2.5 text-sm text-gs-text placeholder:text-gs-muted/80 font-sans leading-relaxed"
+          className="gs-glass-input w-full px-3 py-2.5 text-sm text-gs-text placeholder:text-gs-muted/80 font-sans leading-relaxed"
           placeholder="What matters most this week?"
         />
       </label>
@@ -298,11 +302,14 @@ export function WeekPage() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none">
+        <div className="flex gap-3 items-stretch overflow-x-auto pb-3 gs-week-scroller snap-x snap-mandatory md:snap-none min-h-0">
           {keys.map((dateKey) => {
             const items = state.tasksByDay[dateKey]?.items ?? []
             return (
-              <div key={dateKey} className="snap-start shrink-0 w-[min(88vw,240px)] md:w-auto md:flex-1">
+              <div
+                key={dateKey}
+                className="snap-start shrink-0 w-[min(88vw,248px)] md:flex-1 md:min-w-[160px] flex"
+              >
                 <DayColumn
                   dateKey={dateKey}
                   isToday={dateKey === todayKey}
@@ -317,7 +324,7 @@ export function WeekPage() {
         </div>
         <DragOverlay>
           {activeTask ? (
-            <div className="rounded-md border border-gs-accent/60 bg-gs-surface px-3 py-2 text-sm text-gs-text shadow-lg max-w-[220px]">
+            <div className="rounded-md border border-gs-accent/50 bg-gs-surface/95 px-3 py-2 text-sm text-gs-text shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-[220px]">
               {activeTask.text}
             </div>
           ) : null}

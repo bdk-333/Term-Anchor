@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Navigate } from 'react-router-dom'
+import { GlassStatCard } from '@/components/GlassStatCard'
 import { useAppState } from '@/context/AppStateContext'
 import { daysUntil, semesterProgress, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
@@ -140,7 +141,7 @@ export function DashboardPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 lg:gap-12">
       <div className="space-y-10">
-        <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-8 border-b border-gs-border/90 pb-8">
+        <header className="gs-glass-panel gs-glass-panel--tilt-none flex flex-col sm:flex-row sm:items-start sm:justify-between gap-8 p-5 sm:p-6 mb-2">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-2">
               {today.toLocaleDateString(undefined, {
@@ -166,9 +167,9 @@ export function DashboardPage() {
             <p className="font-mono text-[11px] uppercase tracking-wider text-gs-muted mt-2">
               days to {profile.anchorLabel || 'anchor'}
             </p>
-            <div className="mt-4 h-1 w-40 max-w-full bg-gs-border rounded-full sm:ml-auto overflow-hidden">
+            <div className="mt-4 h-1.5 w-40 max-w-full rounded-full bg-black/30 sm:ml-auto overflow-hidden ring-1 ring-white/10">
               <div
-                className="h-full bg-gs-accent rounded-full transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-gs-accent to-[#c8e830] transition-all duration-500 shadow-[0_0_12px_rgba(232,255,71,0.45)]"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -176,51 +177,31 @@ export function DashboardPage() {
           </div>
         </header>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="rounded-lg border border-gs-border bg-gs-surface/90 p-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-gs-muted mb-2">
-              Days left
-            </p>
-            <p className="font-mono text-2xl font-bold text-gs-accent">
-              {daysLeftDisplay ?? '—'}
-            </p>
-          </div>
-          <div className="rounded-lg border border-gs-border bg-gs-surface/90 p-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-gs-muted mb-2">
-              Days logged
-            </p>
-            <p className="font-mono text-2xl font-bold text-gs-success">{daysLogged}</p>
-          </div>
-          <div className="rounded-lg border border-gs-border bg-gs-surface/90 p-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-gs-muted mb-2">
-              Tasks done
-            </p>
-            <p className="font-mono text-2xl font-bold text-gs-text">{tasksDone}</p>
-          </div>
-          <div className="rounded-lg border border-gs-border bg-gs-surface/90 p-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-gs-muted mb-2">
-              Streak
-            </p>
-            <p className="font-mono text-2xl font-bold text-gs-danger">{streak}</p>
-          </div>
+        <div className="gs-stat-grid grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <GlassStatCard label="Days left" value={daysLeftDisplay ?? '—'} variant="lime" />
+          <GlassStatCard label="Days logged" value={daysLogged} variant="cyan" />
+          <GlassStatCard label="Tasks done" value={tasksDone} variant="white" />
+          <GlassStatCard label="Streak" value={streak} variant="red" />
         </div>
 
         <section
-          className="flex flex-wrap items-center gap-4 sm:gap-5 rounded-lg border border-gs-border bg-gs-surface/90 p-4 sm:p-5"
+          className="gs-glass-streak flex flex-wrap items-center gap-4 sm:gap-5 p-4 sm:p-5"
           aria-label="Streak"
         >
-          <div className="text-3xl leading-none select-none" aria-hidden>
+          <span className="gs-fire-emoji select-none shrink-0" title="Streak" aria-hidden="true">
             🔥
-          </div>
+          </span>
           <div className="flex-1 min-w-[140px]">
-            <p className="font-mono text-2xl sm:text-[1.75rem] font-bold text-gs-accent2">{streak}</p>
+            <p className="font-mono text-2xl sm:text-[1.75rem] font-bold text-gs-accent2 drop-shadow-[0_0_14px_rgba(255,107,53,0.45)]">
+              {streak}
+            </p>
             <p className="font-mono text-[11px] text-gs-muted mt-1">{streakDesc}</p>
           </div>
-          <div className="flex gap-1 w-full sm:w-auto sm:shrink-0 justify-between sm:justify-end">
+          <div className="flex gap-1.5 w-full sm:w-auto sm:shrink-0 justify-between sm:justify-end">
             {pips.map((hot, i) => (
               <div
                 key={i}
-                className={`h-3 w-3 rounded-[3px] ${hot ? 'bg-gs-accent2' : 'bg-gs-border'}`}
+                className={`gs-streak-pip ${hot ? 'gs-streak-pip--hot' : 'gs-streak-pip--off'}`}
                 title={hot ? 'Day saved' : 'Not marked'}
               />
             ))}
@@ -237,7 +218,7 @@ export function DashboardPage() {
               return (
                 <div
                   key={cat.id}
-                  className="border border-gs-border rounded-lg bg-gs-surface-muted/80 p-4 flex flex-col min-h-[200px]"
+                  className="gs-glass-panel p-4 flex flex-col min-h-[200px]"
                 >
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <h4
@@ -291,11 +272,11 @@ export function DashboardPage() {
                     <input
                       name="task"
                       placeholder="Example: Draft my resume bullet points for one project."
-                      className="flex-1 bg-gs-bg/40 border border-gs-border rounded-md px-2 py-2 font-mono text-xs text-gs-text placeholder:text-gs-muted/80 placeholder:font-sans"
+                      className="gs-glass-input flex-1 px-2 py-2 font-mono text-xs text-gs-text placeholder:text-gs-muted/80 placeholder:font-sans"
                     />
                     <button
                       type="submit"
-                      className="font-mono text-xs uppercase px-3 py-2 border border-gs-accent/80 text-gs-accent rounded-md hover:bg-gs-accent/10 transition-colors"
+                      className="font-mono text-xs uppercase px-3 py-2 border border-gs-accent/50 text-gs-accent rounded-md bg-white/[0.04] hover:bg-gs-accent/10 hover:shadow-[0_0_16px_-4px_rgba(232,255,71,0.4)] transition-all"
                     >
                       Add
                     </button>
@@ -315,7 +296,7 @@ export function DashboardPage() {
               value={intention}
               onChange={(e) => setIntention(e.target.value)}
               rows={3}
-              className="w-full bg-gs-surface/90 border border-gs-border rounded-lg px-3 py-2.5 text-sm text-gs-text resize-y font-sans leading-relaxed"
+              className="gs-glass-input w-full px-3 py-2.5 text-sm text-gs-text resize-y font-sans leading-relaxed"
               placeholder="Example: Today I will finish my lab write-up and send two thoughtful job applications."
             />
           </label>
@@ -327,7 +308,7 @@ export function DashboardPage() {
               value={log}
               onChange={(e) => setLog(e.target.value)}
               rows={4}
-              className="w-full bg-gs-surface/90 border border-gs-border rounded-lg px-3 py-2.5 text-sm text-gs-text resize-y font-sans leading-relaxed"
+              className="gs-glass-input w-full px-3 py-2.5 text-sm text-gs-text resize-y font-sans leading-relaxed"
               placeholder="Example: I shipped the first draft of my project, but I got distracted after lunch. Tomorrow I will block two hours before noon."
             />
           </label>
@@ -335,7 +316,7 @@ export function DashboardPage() {
             <button
               type="button"
               onClick={saveDay}
-              className="font-mono text-sm uppercase tracking-wider px-6 py-3 rounded-lg bg-gs-accent2 text-white hover:opacity-90 transition-opacity"
+              className="gs-glass-btn-primary font-mono text-sm uppercase tracking-wider px-6 py-3 text-white"
             >
               Save today
             </button>
@@ -347,7 +328,7 @@ export function DashboardPage() {
       </div>
 
       <aside className="lg:border-l border-gs-border/80 lg:pl-8 space-y-5">
-        <div className="rounded-lg border border-gs-border bg-gs-surface/80 p-5">
+        <div className="gs-glass-panel gs-glass-panel--tilt-none p-5">
           <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-4">
             Habits
           </h3>

@@ -5,7 +5,7 @@ import { useAppState } from '@/context/AppStateContext'
 const steps = ['Anchor & term', 'Optional context', 'Ready']
 
 const inputClass =
-  'w-full bg-gs-surface border border-gs-border rounded-lg px-3 py-2.5 font-mono text-sm text-gs-text placeholder:text-gs-muted/70 placeholder:font-sans'
+  'gs-glass-input w-full px-3 py-2.5 font-mono text-sm text-gs-text placeholder:text-gs-muted/70 placeholder:font-sans'
 
 export function OnboardingPage() {
   const { state, setState } = useAppState()
@@ -66,7 +66,7 @@ export function OnboardingPage() {
       </div>
 
       {step === 0 && (
-        <section className="space-y-8">
+        <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-gs-text">Anchor & this term</h2>
             <p className="text-gs-muted text-sm leading-relaxed">
@@ -127,7 +127,7 @@ export function OnboardingPage() {
           <button
             type="button"
             disabled={!step1Valid}
-            className="w-full py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-gs-accent text-gs-bg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-opacity"
+            className="w-full py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-gs-accent text-gs-bg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-opacity shadow-[0_0_24px_-6px_rgba(232,255,71,0.55)]"
             onClick={() => setStep(1)}
           >
             Continue
@@ -136,7 +136,7 @@ export function OnboardingPage() {
       )}
 
       {step === 1 && (
-        <section className="space-y-8">
+        <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-gs-text">Optional context</h2>
             <p className="text-gs-muted text-sm leading-relaxed">
@@ -224,14 +224,14 @@ export function OnboardingPage() {
       )}
 
       {step === 2 && (
-        <section className="space-y-8">
+        <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-gs-text">You are set</h2>
             <p className="text-gs-muted text-sm leading-relaxed">
               Data lives in your browser only. Use Settings anytime to export a backup JSON file.
             </p>
           </div>
-          <ul className="font-mono text-xs text-gs-muted space-y-3 border border-gs-border rounded-lg p-5 bg-gs-surface/80">
+          <ul className="font-mono text-xs text-gs-muted space-y-3 gs-glass-input p-5 rounded-lg">
             <li>
               <span className="text-gs-accent">Anchor:</span> {anchorLabel} · {anchorDate || '—'}
             </li>
