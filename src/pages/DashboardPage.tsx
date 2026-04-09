@@ -1,12 +1,14 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { DaySectionsEditor } from '@/components/DaySectionsEditor'
+import { IntentSectionsEditor } from '@/components/IntentSectionsEditor'
+import { LiveClock } from '@/components/LiveClock'
+import { LogSectionsEditor } from '@/components/LogSectionsEditor'
 import { GlassStatCard } from '@/components/GlassStatCard'
 import { useAppState } from '@/context/AppStateContext'
 import { MIN_LOG_WORDS_FOR_SAVE, canSaveToday, dailyLogMeetsSaveRule } from '@/lib/daySections'
 import { daysUntil, semesterProgress, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
-import type { AppState, DaySection } from '@/lib/types'
+import type { AppState, DayLogSection, DaySection } from '@/lib/types'
 import { streakCount, streakPips } from '@/lib/streak'
 
 const LANE_TITLE = [
@@ -29,6 +31,7 @@ function countTasksDone(s: AppState): number {
 
 export function DashboardPage() {
   const { state, setState } = useAppState()
+  const [logSideBySide, setLogSideBySide] = useState(false)
   const today = new Date()
   const todayKey = toDateKey(today)
 
@@ -109,7 +112,7 @@ export function DashboardPage() {
     }))
   }
 
-  function setLogSections(next: DaySection[]) {
+  function setLogSections(next: DayLogSection[]) {
     setState((s) => ({
       ...s,
       dayLogSections: { ...s.dayLogSections, [todayKey]: next },
@@ -141,74 +144,114 @@ export function DashboardPage() {
     : 'Today'
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 lg:gap-12">
-      <div className="space-y-10">
-        <header className="gs-glass-panel gs-glass-panel--tilt-none flex flex-col sm:flex-row sm:items-start sm:justify-between gap-8 p-5 sm:p-6 mb-2">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-2">
-              {today.toLocaleDateString(undefined, {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gs-text">
-              {greeting}
-            </h2>
-            {profile.degreeFocus && (
-              <p className="font-mono text-xs text-gs-accent2/90 mt-3 leading-relaxed max-w-md">
-                {profile.degreeFocus}
+    <div>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 lg:gap-12 lg:items-start">
+        <div className="space-y-10">
+          <header className="gs-glass-panel gs-glass-panel--tilt-none flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 p-5 sm:p-6 mb-2">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-2">
+                {today.toLocaleDateString(undefined, {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </p>
-            )}
-          </div>
-          <div className="text-left sm:text-right shrink-0">
-            <span className="font-mono text-4xl sm:text-5xl font-bold text-gs-accent leading-none">
-              {daysLeftDisplay ?? '—'}
-            </span>
-            <p className="font-mono text-[11px] uppercase tracking-wider text-gs-muted mt-2">
-              days to {profile.anchorLabel || 'anchor'}
-            </p>
-            <div className="mt-4 h-1.5 w-40 max-w-full rounded-full bg-black/30 sm:ml-auto overflow-hidden ring-1 ring-white/10">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-gs-accent to-[#c8e830] transition-all duration-500 shadow-[0_0_12px_rgba(232,255,71,0.45)]"
-                style={{ width: `${progress}%` }}
-              />
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gs-text">
+                {greeting}
+              </h2>
+              {profile.degreeFocus && (
+                <p className="font-mono text-xs text-gs-accent2/90 mt-3 leading-relaxed max-w-md">
+                  {profile.degreeFocus}
+                </p>
+              )}
             </div>
-            <p className="font-mono text-[10px] text-gs-muted mt-1.5">Term progress</p>
-          </div>
-        </header>
+            <div className="flex flex-col items-start sm:items-end gap-3 shrink-0 w-full sm:w-auto">
+              <LiveClock />
+              <div className="text-left sm:text-right w-full sm:w-auto">
+                <span className="font-mono text-4xl sm:text-5xl font-bold text-gs-accent leading-none">
+                  {daysLeftDisplay ?? '—'}
+                </span>
+                <p className="font-mono text-[11px] uppercase tracking-wider text-gs-muted mt-2">
+                  days to {profile.anchorLabel || 'anchor'}
+                </p>
+                <div className="mt-4 h-1.5 w-40 max-w-full rounded-full bg-black/30 sm:ml-auto sm:mr-0 overflow-hidden ring-1 ring-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-gs-accent to-[#c8e830] transition-all duration-500 shadow-[0_0_12px_rgba(232,255,71,0.45)]"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="font-mono text-[10px] text-gs-muted mt-1.5">Term progress</p>
+              </div>
+            </div>
+          </header>
 
-        <div className="gs-stat-grid grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-          <GlassStatCard label="Days left" value={daysLeftDisplay ?? '—'} variant="lime" />
-          <GlassStatCard label="Tasks done" value={tasksDone} variant="white" />
-          <GlassStatCard label="Streak" value={streak} variant="red" />
+          <div className="gs-stat-grid grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            <GlassStatCard label="Days left" value={daysLeftDisplay ?? '—'} variant="lime" />
+            <GlassStatCard label="Tasks done" value={tasksDone} variant="white" />
+            <GlassStatCard label="Streak" value={streak} variant="red" />
+          </div>
+
+          <section
+            className="gs-glass-streak flex flex-wrap items-center gap-4 sm:gap-5 p-4 sm:p-5"
+            aria-label="Streak"
+          >
+            <span className="gs-fire-emoji select-none shrink-0" title="Streak" aria-hidden="true">
+              🔥
+            </span>
+            <div className="flex-1 min-w-[140px]">
+              <p className="font-mono text-2xl sm:text-[1.75rem] font-bold text-gs-accent2 drop-shadow-[0_0_14px_rgba(255,107,53,0.45)]">
+                {streak}
+              </p>
+              <p className="font-mono text-[11px] text-gs-muted mt-1">{streakDesc}</p>
+            </div>
+            <div className="flex gap-1.5 w-full sm:w-auto sm:shrink-0 justify-between sm:justify-end">
+              {pips.map((hot, i) => (
+                <div
+                  key={i}
+                  className={`gs-streak-pip ${hot ? 'gs-streak-pip--hot' : 'gs-streak-pip--off'}`}
+                  title={hot ? 'Day saved' : 'Not marked'}
+                />
+              ))}
+            </div>
+          </section>
         </div>
 
-        <section
-          className="gs-glass-streak flex flex-wrap items-center gap-4 sm:gap-5 p-4 sm:p-5"
-          aria-label="Streak"
-        >
-          <span className="gs-fire-emoji select-none shrink-0" title="Streak" aria-hidden="true">
-            🔥
-          </span>
-          <div className="flex-1 min-w-[140px]">
-            <p className="font-mono text-2xl sm:text-[1.75rem] font-bold text-gs-accent2 drop-shadow-[0_0_14px_rgba(255,107,53,0.45)]">
-              {streak}
+        <aside className="lg:border-l border-gs-border/80 lg:pl-8 space-y-5">
+          <div className="gs-glass-panel gs-glass-panel--tilt-none p-5">
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-4">
+              Habits
+            </h3>
+            <ul className="space-y-3">
+              {state.habits.map((h) => {
+                const checked = !!(state.habitChecks[todayKey]?.[h.id])
+                return (
+                  <li key={h.id}>
+                    <label className="gs-habit-label group">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleHabit(h.id)}
+                      />
+                      <span className="gs-habit-box" aria-hidden />
+                      <span
+                        className={`text-sm leading-snug flex-1 ${checked ? 'text-gs-muted line-through' : 'text-gs-text'}`}
+                      >
+                        {h.label}
+                      </span>
+                    </label>
+                  </li>
+                )
+              })}
+            </ul>
+            <p className="font-mono text-[10px] text-gs-muted leading-relaxed mt-5">
+              Edit labels in Settings. Lightweight reminders only.
             </p>
-            <p className="font-mono text-[11px] text-gs-muted mt-1">{streakDesc}</p>
           </div>
-          <div className="flex gap-1.5 w-full sm:w-auto sm:shrink-0 justify-between sm:justify-end">
-            {pips.map((hot, i) => (
-              <div
-                key={i}
-                className={`gs-streak-pip ${hot ? 'gs-streak-pip--hot' : 'gs-streak-pip--off'}`}
-                title={hot ? 'Day saved' : 'Not marked'}
-              />
-            ))}
-          </div>
-        </section>
+        </aside>
+      </div>
 
+      <div className="mt-10 lg:mt-12 space-y-10 w-full max-w-none xl:max-w-[min(100%,1420px)] mx-auto">
         <section>
           <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-4">
             Task lanes
@@ -288,8 +331,8 @@ export function DashboardPage() {
           </div>
         </section>
 
-        <section className="space-y-8">
-          <DaySectionsEditor
+        <section className="space-y-10">
+          <IntentSectionsEditor
             label="Today’s intention"
             sections={intentionSections}
             onChange={setIntentionSections}
@@ -299,23 +342,22 @@ export function DashboardPage() {
           />
 
           <div className="space-y-2">
-            <DaySectionsEditor
+            <LogSectionsEditor
               label="Daily log / reflection"
               sections={logSections}
               onChange={setLogSections}
-              titlePlaceholder="e.g. Leetcode, project brainstorm…"
-              detailsPlaceholder="What you did, problems solved, numbers, notes for tomorrow…"
               addSectionLabel="Add log section"
+              sideBySide={logSideBySide}
+              onSideBySideChange={setLogSideBySide}
             />
             <p className="font-mono text-[10px] text-gs-muted leading-relaxed">
-              To save today: mark at least one task done, and add a daily log section with a{' '}
-              <strong className="text-gs-text/80 font-normal">title</strong> plus at least{' '}
-              {MIN_LOG_WORDS_FOR_SAVE} words in that section&apos;s{' '}
-              <strong className="text-gs-text/80 font-normal">details</strong> (title words don&apos;t
-              count). Habits are optional.
+              To save today: mark at least one task done, and complete one log section — section title plus
+              method-specific content (Default: {MIN_LOG_WORDS_FOR_SAVE}+ words in details; Cornell: cues/notes
+              + {MIN_LOG_WORDS_FOR_SAVE}+ words total; Outline: top items with enough text; Boxed: titled
+              boxes with enough text). Images and links attach below each section. Habits optional.
               {!logQualifies && logSections.length > 0 ? (
                 <span className="block mt-1 text-gs-accent2/90">
-                  Still needed: a titled section with a detailed write-up.
+                  Still need a qualifying section (see checklist below when you try Save).
                 </span>
               ) : null}
             </p>
@@ -350,39 +392,6 @@ export function DashboardPage() {
           </div>
         </section>
       </div>
-
-      <aside className="lg:border-l border-gs-border/80 lg:pl-8 space-y-5">
-        <div className="gs-glass-panel gs-glass-panel--tilt-none p-5">
-          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-4">
-            Habits
-          </h3>
-          <ul className="space-y-3">
-            {state.habits.map((h) => {
-              const checked = !!(state.habitChecks[todayKey]?.[h.id])
-              return (
-                <li key={h.id}>
-                  <label className="gs-habit-label group">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleHabit(h.id)}
-                    />
-                    <span className="gs-habit-box" aria-hidden />
-                    <span
-                      className={`text-sm leading-snug flex-1 ${checked ? 'text-gs-muted line-through' : 'text-gs-text'}`}
-                    >
-                      {h.label}
-                    </span>
-                  </label>
-                </li>
-              )
-            })}
-          </ul>
-          <p className="font-mono text-[10px] text-gs-muted leading-relaxed mt-5">
-            Edit labels in Settings. Lightweight reminders only.
-          </p>
-        </div>
-      </aside>
     </div>
   )
 }

@@ -1,27 +1,14 @@
 import type { AppState, DaySection } from './types'
+import { dailyLogMeetsSaveRule, MIN_LOG_WORDS_FOR_SAVE } from './logSections'
 import { newId } from './id'
 
-export const MIN_LOG_WORDS_FOR_SAVE = 5
+export { MIN_LOG_WORDS_FOR_SAVE, dailyLogMeetsSaveRule } from './logSections'
+export type { DayLogSection } from './types'
 
-export function countWords(text: string): number {
-  return text
-    .trim()
-    .split(/\s+/)
-    .filter((w) => w.length > 0).length
-}
-
-/** All titles and details for a day's sections, for word count / display. */
+/** Intent + legacy combined text (export / search helpers). */
 export function combinedSectionText(sections: DaySection[] | undefined): string {
   if (!sections?.length) return ''
   return sections.map((s) => `${s.title}\n${s.details}`).join('\n')
-}
-
-/** One section with a non-empty title and enough words in details only (not title). */
-export function dailyLogMeetsSaveRule(sections: DaySection[] | undefined): boolean {
-  if (!sections?.length) return false
-  return sections.some(
-    (s) => s.title.trim().length > 0 && countWords(s.details) >= MIN_LOG_WORDS_FOR_SAVE,
-  )
 }
 
 export function todayTasksDoneCount(state: AppState, todayKey: string): number {
@@ -42,10 +29,10 @@ export function canSaveToday(
     if (!logSections.length) {
       reasons.push('Add at least one daily log section.')
     } else if (!logSections.some((s) => s.title.trim().length > 0)) {
-      reasons.push('Give at least one log section a title (broad focus).')
+      reasons.push('Give at least one log section a section title (e.g. lecture or project name).')
     } else {
       reasons.push(
-        `Write at least ${MIN_LOG_WORDS_FOR_SAVE} words in the details of a section that has a title (title words don’t count).`,
+        `Complete one log section: for Default/Cornell, ${MIN_LOG_WORDS_FOR_SAVE}+ words in the note fields; for Outline, add items with enough text; for Boxed, add boxes with titles and enough text overall.`,
       )
     }
   }

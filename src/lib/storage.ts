@@ -1,10 +1,12 @@
 import {
   CURRENT_SCHEMA_VERSION,
   type AppState,
+  type DayLogSection,
   STORAGE_KEY,
   type Profile,
 } from './types'
 import { migrateLegacyDayStringMap } from './daySections'
+import { migrateV2LogSectionToV3 } from './logSections'
 import { newId } from './id'
 
 function defaultCategories() {
@@ -86,9 +88,18 @@ export function migrate(raw: unknown): AppState {
         dayLogSections: hasNewLog
           ? (state.dayLogSections ?? {})
           : migrateLegacyDayStringMap(legacyLog ?? {}),
-      }
+      } as AppState
       delete (state as { dayIntent?: unknown }).dayIntent
       delete (state as { dayLog?: unknown }).dayLog
+    }
+    if (v === 3) {
+      const logMap = state.dayLogSections ?? {}
+      const next: Record<string, DayLogSection[]> = {}
+      for (const [day, secs] of Object.entries(logMap)) {
+        const arr = Array.isArray(secs) ? secs : []
+        next[day] = arr.map((x) => migrateV2LogSectionToV3(x))
+      }
+      state = { ...state, dayLogSections: next, schemaVersion: 3 }
     }
   }
 

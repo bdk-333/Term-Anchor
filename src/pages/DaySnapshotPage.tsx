@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { LogSectionReadOnly } from '@/components/log/LogSectionReadOnly'
 import { useAppState } from '@/context/AppStateContext'
 import { daysUntil, semesterProgress, weekStartKey } from '@/lib/dates'
 import type { TaskItem } from '@/lib/types'
@@ -193,12 +194,11 @@ export function DaySnapshotPage() {
             <p className="text-sm text-gs-muted">No intention sections.</p>
           ) : (
             <ul className="space-y-4">
-              {intentionSections.map((s, idx) => (
+              {intentionSections.map((s) => (
                 <li
                   key={s.id}
                   className="gs-glass-panel gs-glass-panel--tilt-none p-4 border border-white/[0.06]"
                 >
-                  <p className="font-mono text-[10px] uppercase text-gs-muted mb-2">Section {idx + 1}</p>
                   <p className="text-sm font-medium text-gs-text">{s.title.trim() || '—'}</p>
                   {s.details.trim() ? (
                     <p className="text-sm text-gs-muted mt-2 whitespace-pre-wrap leading-relaxed">
@@ -217,18 +217,9 @@ export function DaySnapshotPage() {
             <p className="text-sm text-gs-muted">No log sections.</p>
           ) : (
             <ul className="space-y-4">
-              {logSections.map((s, idx) => (
-                <li
-                  key={s.id}
-                  className="gs-glass-panel gs-glass-panel--tilt-none p-4 border border-white/[0.06]"
-                >
-                  <p className="font-mono text-[10px] uppercase text-gs-muted mb-2">Section {idx + 1}</p>
-                  <p className="text-sm font-medium text-gs-text">{s.title.trim() || '—'}</p>
-                  {s.details.trim() ? (
-                    <p className="text-sm text-gs-muted mt-2 whitespace-pre-wrap leading-relaxed">
-                      {s.details}
-                    </p>
-                  ) : null}
+              {logSections.map((s) => (
+                <li key={s.id}>
+                  <LogSectionReadOnly section={s} />
                 </li>
               ))}
             </ul>
