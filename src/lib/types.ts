@@ -1,4 +1,4 @@
-export const CURRENT_SCHEMA_VERSION = 3
+export const CURRENT_SCHEMA_VERSION = 6
 
 export const STORAGE_KEY = 'gradSprint:v1'
 
@@ -26,6 +26,16 @@ export type TaskItem = {
   categoryId: string
   text: string
   done: boolean
+  /** Planned start that day, minutes from local midnight (0–1439) */
+  plannedStartMinutes?: number | null
+  /** Planned end; omit or null = “at start” only (±5 min when marking done) */
+  plannedEndMinutes?: number | null
+  /** ISO time when marked done */
+  completedAt?: string | null
+  /** Set when marked done outside planned window (±5 min) */
+  doneTimeMismatch?: boolean
+  /** Linked row in SQLite time tracker (`/api/time/tasks`) when using Start timer */
+  timeTaskId?: number | null
 }
 
 export type Habit = { id: string; label: string }
@@ -61,6 +71,13 @@ export type BoxNode = {
   children: BoxNode[]
 }
 
+/** One Cornell row: short cue (left) and notes for that cue (right). */
+export type CornellCueNoteRow = {
+  id: string
+  cue: string
+  notes: string
+}
+
 /** Daily log section — mode-specific fields; `title` is the section label (e.g. “Lec 3”). */
 export type DayLogSection = {
   id: string
@@ -68,7 +85,11 @@ export type DayLogSection = {
   title: string
   /** default */
   details?: string
-  /** Cornell: cues left, notes right, summary full width below */
+  /** Cornell: linked cue/notes rows (preferred). Legacy `cornellCues` / `cornellNotes` are migrated in normalize. */
+  cornellRows?: CornellCueNoteRow[]
+  /** 15–70: cues column width (%) in the cues+notes block */
+  cornellCueColumnPct?: number
+  /** Cornell legacy single-block fields (migrated into `cornellRows`) */
   cornellCues?: string
   cornellNotes?: string
   cornellSummary?: string

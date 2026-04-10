@@ -1,3 +1,4 @@
+import { getCornellRows } from '@/lib/logSections'
 import type { BoxNode, DayLogSection, OutlineNode } from '@/lib/types'
 
 function OutlineRead({ nodes, listType }: { nodes: OutlineNode[]; listType: 'ordered' | 'unordered' }) {
@@ -56,24 +57,49 @@ export function LogSectionReadOnly({ section }: { section: DayLogSection }) {
         </p>
       )}
 
-      {section.noteMode === 'cornell' && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,32%)_1fr] gap-3">
-            <div className="rounded-lg border border-rose-400/20 bg-rose-500/[0.06] p-2">
-              <p className="font-mono text-[10px] uppercase text-rose-200/80 mb-1">Cues</p>
-              <p className="text-sm text-gs-muted whitespace-pre-wrap">{section.cornellCues?.trim() || '—'}</p>
+      {section.noteMode === 'cornell' && (() => {
+        const cornellRows = getCornellRows(section)
+        const pct = Math.min(70, Math.max(15, section.cornellCueColumnPct ?? 35))
+        return (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-rose-400/20 bg-rose-500/[0.06] overflow-hidden">
+              <p className="font-mono text-[10px] uppercase text-rose-200/80 px-3 pt-2 pb-1">Cues & notes</p>
+              <div className="divide-y divide-white/[0.08] border-t border-white/[0.08]">
+                {cornellRows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="grid gap-2 px-3 py-2.5 text-sm"
+                    style={{
+                      gridTemplateColumns: `minmax(0, ${pct}%) minmax(0, 1fr)`,
+                    }}
+                  >
+                    <div className="flex gap-2 items-start min-w-0 border-r border-white/[0.08] pr-3">
+                      <span className="text-rose-200/90 shrink-0 font-sans" aria-hidden>
+                        -
+                      </span>
+                      <p className="text-gs-text whitespace-pre-wrap leading-relaxed min-w-0">
+                        {row.cue.trim() ? row.cue : '—'}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 items-start min-w-0">
+                      <span className="text-sky-300/85 shrink-0 font-sans" aria-hidden>
+                        *
+                      </span>
+                      <p className="text-gs-muted whitespace-pre-wrap leading-relaxed min-w-0">
+                        {row.notes.trim() ? row.notes : '—'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
-              <p className="font-mono text-[10px] uppercase text-gs-muted mb-1">Notes</p>
-              <p className="text-sm text-gs-muted whitespace-pre-wrap">{section.cornellNotes?.trim() || '—'}</p>
+            <div className="rounded-lg border border-sky-400/20 bg-sky-500/[0.06] p-2">
+              <p className="font-mono text-[10px] uppercase text-sky-200/80 mb-1">Summary</p>
+              <p className="text-sm text-gs-muted whitespace-pre-wrap">{section.cornellSummary?.trim() || '—'}</p>
             </div>
           </div>
-          <div className="rounded-lg border border-sky-400/20 bg-sky-500/[0.06] p-2">
-            <p className="font-mono text-[10px] uppercase text-sky-200/80 mb-1">Summary</p>
-            <p className="text-sm text-gs-muted whitespace-pre-wrap">{section.cornellSummary?.trim() || '—'}</p>
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       {section.noteMode === 'outline' && (
         <OutlineRead

@@ -1,15 +1,37 @@
-import { useMemo, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  closestCorners,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core'
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Navigate, useSearchParams } from 'react-router-dom'
+import { DashboardTimerSections } from '@/components/time/DashboardTimerSections'
+import { TaskPlannedTimeInline } from '@/components/task/TaskPlannedTimeInline'
 import { IntentSectionsEditor } from '@/components/IntentSectionsEditor'
-import { LiveClock } from '@/components/LiveClock'
 import { LogSectionsEditor } from '@/components/LogSectionsEditor'
 import { GlassStatCard } from '@/components/GlassStatCard'
 import { useAppState } from '@/context/AppStateContext'
+import { useTimeTracker } from '@/context/TimeTrackerContext'
 import { MIN_LOG_WORDS_FOR_SAVE, canSaveToday, dailyLogMeetsSaveRule } from '@/lib/daySections'
+import {
+  clampMinutes,
+  computeDoneTimeMismatch,
+  formatPlannedTimeRange,
+  parseTimeInput,
+} from '@/lib/taskPlannedTime'
 import { daysUntil, semesterProgress, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
-import type { AppState, DayLogSection, DaySection } from '@/lib/types'
+import type { AppState, DayLogSection, DaySection, TaskItem } from '@/lib/types'
 import { streakCount, streakPips } from '@/lib/streak'
+import { deleteTask } from '@/lib/timeApi'
 
 const LANE_TITLE = [
   'text-gs-lane-0',
@@ -18,6 +40,158 @@ const LANE_TITLE = [
   'text-gs-lane-3',
 ] as const
 const LANE_DOT = ['bg-gs-lane-0', 'bg-gs-lane-1', 'bg-gs-lane-2', 'bg-gs-lane-3'] as const
+
+function firstSlotForEmptyLane(items: TaskItem[], lane: string, categoryOrder: string[]): number {
+  const ti = categoryOrder.indexOf(lane)
+  if (ti === -1) return items.length
+  for (let i = 0; i < items.length; i++) {
+    const li = categoryOrder.indexOf(items[i].categoryId)
+    if (li > ti) return i
+  }
+  return items.length
+}
+
+function SortableDashboardTask({
+  task,
+  plannedLabel,
+  tracking,
+  mismatch,
+  onToggle,
+  onPatch,
+  onRemove,
+  onStartTimer,
+  timeApiOk,
+}: {
+  task: TaskItem
+  plannedLabel: ReturnType<typeof formatPlannedTimeRange>
+  tracking: boolean
+  mismatch: boolean
+  onToggle: (id: string) => void
+  onPatch: (id: string, patch: Partial<TaskItem>) => void
+  onRemove: (id: string) => void
+  onStartTimer: (id: string) => void
+  timeApiOk: boolean | null
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+  })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.45 : 1,
+  }
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={[
+        'rounded-lg border px-2 py-2 group',
+        tracking
+          ? 'border-gs-accent/45 bg-gs-accent/[0.07] shadow-[0_0_20px_-8px_rgba(232,255,71,0.2)]'
+          : mismatch
+            ? 'border-amber-400/55 bg-amber-500/[0.07] shadow-[0_0_20px_-8px_rgba(251,191,36,0.25)]'
+            : 'border-white/[0.06] bg-black/15',
+      ].join(' ')}
+    >
+      <div className="flex items-start gap-2">
+        <button
+          type="button"
+          className="cursor-grab active:cursor-grabbing font-mono text-gs-muted touch-none px-0.5 shrink-0 mt-0.5"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder or move lane"
+        >
+          ⋮⋮
+        </button>
+        <button
+          type="button"
+          onClick={() => onToggle(task.id)}
+          className={`mt-0.5 w-4 h-4 shrink-0 rounded border font-mono text-[10px] leading-4 ${
+            task.done
+              ? 'bg-gs-success border-gs-success text-gs-bg'
+              : 'border-gs-muted bg-gs-surface-muted/50'
+          }`}
+          aria-label={task.done ? 'Mark incomplete' : 'Mark done'}
+        >
+          {task.done ? '✓' : ''}
+        </button>
+        <div className={`flex-1 min-w-0 ${task.done ? 'text-gs-muted' : ''}`}>
+          {plannedLabel ? (
+            <p className="font-mono text-[10px] text-sky-300/90 leading-tight mb-0.5">{plannedLabel}</p>
+          ) : null}
+          <span
+            className={`text-sm block leading-snug ${task.done ? 'line-through' : 'text-gs-text'}`}
+          >
+            {task.text}
+          </span>
+          {task.done && task.completedAt ? (
+            <p className="font-mono text-[9px] text-gs-muted/90 mt-1">
+              Done at{' '}
+              {new Date(task.completedAt).toLocaleTimeString(undefined, {
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+              })}
+            </p>
+          ) : null}
+          {task.done && task.doneTimeMismatch ? (
+            <p className="font-mono text-[9px] text-amber-200/95 mt-1 leading-snug">
+              Completed outside the planned window (allowed ±5 min).
+            </p>
+          ) : null}
+          <TaskPlannedTimeInline task={task} onPatch={(patch) => onPatch(task.id, patch)} />
+          {tracking ? (
+            <p className="font-mono text-[9px] text-gs-accent mt-2">Tracking now</p>
+          ) : null}
+          {!task.done && timeApiOk === true && !tracking ? (
+            <div className="mt-2">
+              <button
+                type="button"
+                className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md border border-gs-accent/45 text-gs-accent bg-white/[0.04] hover:bg-gs-accent/10"
+                onClick={() => onStartTimer(task.id)}
+              >
+                Start timer
+              </button>
+            </div>
+          ) : null}
+          {!task.done && timeApiOk === false ? (
+            <p className="font-mono text-[9px] text-gs-muted/90 mt-2 leading-snug">
+              Start timer: run the app with the local server so{' '}
+              <span className="font-mono text-gs-text/80">/api/time</span> is available.
+            </p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className="opacity-0 group-hover:opacity-100 text-gs-muted hover:text-gs-danger font-mono text-xs shrink-0"
+          onClick={() => onRemove(task.id)}
+          aria-label="Remove task"
+        >
+          ×
+        </button>
+      </div>
+    </li>
+  )
+}
+
+function LaneSortableList({
+  laneId,
+  taskIds,
+  children,
+}: {
+  laneId: string
+  taskIds: string[]
+  children: ReactNode
+}) {
+  const { setNodeRef } = useDroppable({ id: laneId })
+  return (
+    <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+      <ul ref={setNodeRef} className="space-y-3 flex-1 mb-3 min-h-[72px]">
+        {children}
+      </ul>
+    </SortableContext>
+  )
+}
 
 function countTasksDone(s: AppState): number {
   let n = 0
@@ -31,7 +205,11 @@ function countTasksDone(s: AppState): number {
 
 export function DashboardPage() {
   const { state, setState } = useAppState()
+  const { apiOk: timeApiOk, runStartPlannerTask, current: timerCurrent } = useTimeTracker()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const plannerStartParam = searchParams.get('startPlannerTask')
   const [logSideBySide, setLogSideBySide] = useState(false)
+  const [activeLaneTaskId, setActiveLaneTaskId] = useState<string | null>(null)
   const today = new Date()
   const todayKey = toDateKey(today)
 
@@ -52,6 +230,9 @@ export function DashboardPage() {
   }, [rawItems, state.taskCategories])
 
   const bucket = rawItems ?? []
+
+  const categoryIds = useMemo(() => state.taskCategories.map((c) => c.id), [state.taskCategories])
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const until = profile.anchorDate ? daysUntil(profile.anchorDate, today) : null
   const daysLeftDisplay = until != null ? Math.max(0, until) : null
@@ -88,22 +269,102 @@ export function DashboardPage() {
     }))
   }
 
-  function addTask(categoryId: string, text: string) {
+  function patchTask(id: string, patch: Partial<TaskItem>) {
+    patchTodayTasks(bucket.map((t) => (t.id === id ? { ...t, ...patch } : t)))
+  }
+
+  function addTask(
+    categoryId: string,
+    text: string,
+    opts?: { plannedStartMinutes?: number | null; plannedEndMinutes?: number | null },
+  ) {
     const t = text.trim()
     if (!t) return
     patchTodayTasks([
       ...bucket,
-      { id: newId(), categoryId, text: t, done: false },
+      {
+        id: newId(),
+        categoryId,
+        text: t,
+        done: false,
+        plannedStartMinutes: opts?.plannedStartMinutes ?? undefined,
+        plannedEndMinutes: opts?.plannedEndMinutes ?? undefined,
+      },
     ])
   }
 
   function toggleTask(id: string) {
-    patchTodayTasks(bucket.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
+    const t = bucket.find((x) => x.id === id)
+    if (!t) return
+    if (t.done) {
+      patchTask(id, { done: false, completedAt: undefined, doneTimeMismatch: undefined })
+    } else {
+      const completedAt = new Date().toISOString()
+      const mismatch =
+        t.plannedStartMinutes != null && computeDoneTimeMismatch(todayKey, t, completedAt, 5)
+      patchTask(id, { done: true, completedAt, doneTimeMismatch: mismatch })
+    }
   }
 
   function removeTask(id: string) {
-    patchTodayTasks(bucket.filter((t) => t.id !== id))
+    const t = bucket.find((x) => x.id === id)
+    if (t?.timeTaskId != null) {
+      void deleteTask(t.timeTaskId).catch(() => {})
+    }
+    patchTodayTasks(bucket.filter((x) => x.id !== id))
   }
+
+  function laneOfTask(taskId: string): string | null {
+    return bucket.find((t) => t.id === taskId)?.categoryId ?? null
+  }
+
+  function handleLaneDragStart(e: DragStartEvent) {
+    setActiveLaneTaskId(String(e.active.id))
+  }
+
+  function handleLaneDragEnd(e: DragEndEvent) {
+    setActiveLaneTaskId(null)
+    const { active, over } = e
+    if (!over) return
+    const aid = String(active.id)
+    const oid = String(over.id)
+    const activeLane = laneOfTask(aid)
+    if (!activeLane) return
+    const overLane = categoryIds.includes(oid) ? oid : laneOfTask(oid)
+    if (!overLane) return
+
+    const items = [...bucket]
+    const activeFlat = items.findIndex((t) => t.id === aid)
+    if (activeFlat === -1) return
+
+    if (activeLane === overLane) {
+      const overFlat = items.findIndex((t) => t.id === oid)
+      if (overFlat === -1 || activeFlat === overFlat) return
+      patchTodayTasks(arrayMove(items, activeFlat, overFlat))
+      return
+    }
+
+    const moved = { ...items[activeFlat], categoryId: overLane }
+    const without = items.filter((t) => t.id !== aid)
+    let insertAt = without.length
+    if (categoryIds.includes(oid)) {
+      let last = -1
+      for (let i = 0; i < without.length; i++) {
+        if (without[i].categoryId === overLane) last = i
+      }
+      insertAt =
+        last === -1 ? firstSlotForEmptyLane(without, overLane, categoryIds) : last + 1
+    } else {
+      const overFlat = without.findIndex((t) => t.id === oid)
+      insertAt = overFlat === -1 ? without.length : overFlat
+    }
+    patchTodayTasks([...without.slice(0, insertAt), moved, ...without.slice(insertAt)])
+  }
+
+  const activeDragTask = useMemo(() => {
+    if (!activeLaneTaskId) return null
+    return bucket.find((t) => t.id === activeLaneTaskId) ?? null
+  }, [activeLaneTaskId, bucket])
 
   function setIntentionSections(next: DaySection[]) {
     setState((s) => ({
@@ -143,6 +404,20 @@ export function DashboardPage() {
     ? `Today — ${profile.displayName}`
     : 'Today'
 
+  useEffect(() => {
+    if (!plannerStartParam || timeApiOk !== true) return
+    const taskId = decodeURIComponent(plannerStartParam)
+    setSearchParams(
+      (sp) => {
+        const n = new URLSearchParams(sp)
+        n.delete('startPlannerTask')
+        return n
+      },
+      { replace: true },
+    )
+    void runStartPlannerTask(taskId)
+  }, [plannerStartParam, timeApiOk, setSearchParams, runStartPlannerTask])
+
   return (
     <div>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 lg:gap-12 lg:items-start">
@@ -167,7 +442,6 @@ export function DashboardPage() {
               )}
             </div>
             <div className="flex flex-col items-start sm:items-end gap-3 shrink-0 w-full sm:w-auto">
-              <LiveClock />
               <div className="text-left sm:text-right w-full sm:w-auto">
                 <span className="font-mono text-4xl sm:text-5xl font-bold text-gs-accent leading-none">
                   {daysLeftDisplay ?? '—'}
@@ -253,82 +527,150 @@ export function DashboardPage() {
 
       <div className="mt-10 lg:mt-12 space-y-10 w-full max-w-none xl:max-w-[min(100%,1420px)] mx-auto">
         <section>
-          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-4">
+          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-1">
+            Time tracking
+          </h3>
+          <p className="font-mono text-[10px] text-gs-muted/90 mb-4 max-w-2xl leading-relaxed">
+            Pause, resume, and stop the session here. Tracked minutes and ad-hoc database tasks are below.
+            Week can send you back with <span className="text-gs-text/90">Start timer</span> on today&apos;s
+            column.
+          </p>
+          <DashboardTimerSections />
+        </section>
+
+        <section>
+          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-1">
             Task lanes
           </h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {state.taskCategories.map((cat, idx) => {
-              const ti = idx % 4
-              return (
-                <div
-                  key={cat.id}
-                  className="gs-glass-panel p-4 flex flex-col min-h-[200px]"
-                >
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <h4
-                      className={`font-mono text-xs font-bold uppercase tracking-[0.1em] ${LANE_TITLE[ti]}`}
-                    >
-                      {cat.label}
-                    </h4>
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${LANE_DOT[ti]}`} aria-hidden />
-                  </div>
-                  <ul className="space-y-2 flex-1 mb-3">
-                    {(byCat.get(cat.id) ?? []).map((t) => (
-                      <li key={t.id} className="flex items-start gap-2 group">
-                        <button
-                          type="button"
-                          onClick={() => toggleTask(t.id)}
-                          className={`mt-0.5 w-4 h-4 shrink-0 rounded border font-mono text-[10px] leading-4 ${
-                            t.done
-                              ? 'bg-gs-success border-gs-success text-gs-bg'
-                              : 'border-gs-muted bg-gs-surface-muted/50'
-                          }`}
-                          aria-label={t.done ? 'Mark incomplete' : 'Mark done'}
-                        >
-                          {t.done ? '✓' : ''}
-                        </button>
-                        <span
-                          className={`text-sm flex-1 leading-snug ${t.done ? 'text-gs-muted line-through' : 'text-gs-text'}`}
-                        >
-                          {t.text}
-                        </span>
-                        <button
-                          type="button"
-                          className="opacity-0 group-hover:opacity-100 text-gs-muted hover:text-gs-danger font-mono text-xs"
-                          onClick={() => removeTask(t.id)}
-                          aria-label="Remove task"
-                        >
-                          ×
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+          <p className="font-mono text-[10px] text-gs-muted/90 mb-4 max-w-2xl leading-relaxed">
+            Set optional <span className="text-gs-text/90">When</span> times on each task. Drag{' '}
+            <span className="text-gs-text/85">⋮⋮</span> to reorder within a lane or drop onto another lane.
+            Marking done checks the clock against your plan (±5 minutes). Future days with times: use{' '}
+            <span className="text-gs-accent/90">Week</span>. Use <span className="text-gs-accent/90">Start timer</span>{' '}
+            on a row when the local time API is on (see Time tracking above).
+          </p>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleLaneDragStart}
+            onDragEnd={handleLaneDragEnd}
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              {state.taskCategories.map((cat, idx) => {
+                const ti = idx % 4
+                const laneList = byCat.get(cat.id) ?? []
+                const laneIds = laneList.map((t) => t.id)
+                return (
+                  <div
+                    key={cat.id}
+                    className="gs-glass-panel p-4 flex flex-col min-h-[200px]"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <h4
+                        className={`font-mono text-xs font-bold uppercase tracking-[0.1em] ${LANE_TITLE[ti]}`}
+                      >
+                        {cat.label}
+                      </h4>
+                      <span className={`h-2 w-2 rounded-full shrink-0 ${LANE_DOT[ti]}`} aria-hidden />
+                    </div>
+                    <LaneSortableList laneId={cat.id} taskIds={laneIds}>
+                      {laneList.map((t) => {
+                        const plannedLabel = formatPlannedTimeRange(t)
+                        const tracking =
+                          timeApiOk === true &&
+                          timerCurrent != null &&
+                          t.timeTaskId === timerCurrent.taskId
+                        const mismatch = !!(t.done && t.doneTimeMismatch)
+                        return (
+                          <SortableDashboardTask
+                            key={t.id}
+                            task={t}
+                            plannedLabel={plannedLabel}
+                            tracking={tracking}
+                            mismatch={mismatch}
+                            onToggle={toggleTask}
+                            onPatch={patchTask}
+                            onRemove={removeTask}
+                            onStartTimer={(id) => void runStartPlannerTask(id)}
+                            timeApiOk={timeApiOk}
+                          />
+                        )
+                      })}
+                    </LaneSortableList>
                   <form
                     onSubmit={(e) => {
                       e.preventDefault()
                       const fd = new FormData(e.currentTarget)
                       const text = String(fd.get('task') || '')
-                      addTask(cat.id, text)
+                      const startRaw = String(fd.get('planStart') || '')
+                      const endRaw = String(fd.get('planEnd') || '')
+                      const hasEnd = fd.get('planHasEnd') === 'on'
+                      const sm = startRaw ? parseTimeInput(startRaw) : null
+                      const em = hasEnd && endRaw ? parseTimeInput(endRaw) : null
+                      let plannedStartMinutes: number | undefined
+                      let plannedEndMinutes: number | undefined
+                      if (sm != null) {
+                        plannedStartMinutes = clampMinutes(sm)
+                        if (em != null) {
+                          plannedEndMinutes = clampMinutes(Math.max(em, plannedStartMinutes))
+                        }
+                      }
+                      addTask(cat.id, text, {
+                        plannedStartMinutes: plannedStartMinutes ?? undefined,
+                        plannedEndMinutes:
+                          plannedStartMinutes != null && hasEnd && em != null
+                            ? plannedEndMinutes
+                            : undefined,
+                      })
                       e.currentTarget.reset()
                     }}
-                    className="flex gap-2"
+                    className="space-y-2 border-t border-white/[0.06] pt-3"
                   >
-                    <input
-                      name="task"
-                      placeholder="Example: Draft my resume bullet points for one project."
-                      className="gs-glass-input flex-1 px-2 py-2 font-mono text-xs text-gs-text placeholder:text-gs-muted/80 placeholder:font-sans"
-                    />
-                    <button
-                      type="submit"
-                      className="font-mono text-xs uppercase px-3 py-2 border border-gs-accent/50 text-gs-accent rounded-md bg-white/[0.04] hover:bg-gs-accent/10 hover:shadow-[0_0_16px_-4px_rgba(232,255,71,0.4)] transition-all"
-                    >
-                      Add
-                    </button>
+                    <div className="flex gap-2 flex-wrap">
+                      <input
+                        name="task"
+                        placeholder="Task…"
+                        className="gs-glass-input flex-1 min-w-[8rem] px-2 py-2 font-mono text-xs text-gs-text placeholder:text-gs-muted/80 placeholder:font-sans"
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-[9px] text-gs-muted uppercase">When (optional)</span>
+                      <input
+                        type="time"
+                        name="planStart"
+                        aria-label="Planned start for new task"
+                        className="gs-glass-input w-[7rem] px-1.5 py-1 font-mono text-[10px] text-gs-text"
+                      />
+                      <label className="flex items-center gap-1 font-mono text-[9px] text-gs-muted">
+                        <input type="checkbox" name="planHasEnd" className="rounded border-gs-border" />
+                        End
+                      </label>
+                      <input
+                        type="time"
+                        name="planEnd"
+                        aria-label="Planned end for new task"
+                        className="gs-glass-input w-[7rem] px-1.5 py-1 font-mono text-[10px] text-gs-text"
+                      />
+                      <button
+                        type="submit"
+                        className="font-mono text-xs uppercase px-3 py-2 border border-gs-accent/50 text-gs-accent rounded-md bg-white/[0.04] hover:bg-gs-accent/10 hover:shadow-[0_0_16px_-4px_rgba(232,255,71,0.4)] transition-all ml-auto"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </form>
                 </div>
               )
             })}
-          </div>
+            </div>
+            <DragOverlay>
+              {activeDragTask ? (
+                <div className="rounded-lg border border-gs-accent/50 bg-gs-surface/95 px-3 py-2 text-sm text-gs-text shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-[280px]">
+                  {activeDragTask.text}
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         </section>
 
         <section className="space-y-10">

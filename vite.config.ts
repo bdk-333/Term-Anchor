@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { Connect } from 'vite'
@@ -8,8 +10,22 @@ import { defineConfig, type Plugin } from 'vite'
 // GitHub Pages project sites need /<repo>/; override with VITE_BASE in CI or .env
 const base = process.env.VITE_BASE ?? '/'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.resolve(__dirname, 'data')
 const STATE_FILE = path.join(DATA_DIR, 'term-anchor-state.json')
+
+let timeTrackerImport: Promise<{
+  timeTrackerHandle: (req: IncomingMessage, res: ServerResponse) => Promise<boolean>
+}> | null = null
+function loadTimeTrackerHandlers() {
+  if (!timeTrackerImport) {
+    const href = pathToFileURL(path.resolve(__dirname, 'scripts/time-tracker/http-handlers.mjs')).href
+    timeTrackerImport = import(href) as Promise<{
+      timeTrackerHandle: (req: IncomingMessage, res: ServerResponse) => Promise<boolean>
+    }>
+  }
+  return timeTrackerImport
+}
 
 async function readBody(req: Connect.IncomingMessage, maxBytes: number): Promise<string> {
   const chunks: Buffer[] = []
@@ -28,6 +44,18 @@ function termAnchorApiPlugin(): Plugin {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const pathname = req.url?.split('?')[0] ?? ''
+        if (pathname.startsWith('/api/time')) {
+          try {
+            const mod = await loadTimeTrackerHandlers()
+            const handled = await mod.timeTrackerHandle(req, res)
+            if (handled) return
+          } catch (e) {
+            res.statusCode = 500
+            res.end(String(e))
+            return
+          }
+        }
+
         if (pathname !== '/api/state') {
           next()
           return

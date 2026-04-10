@@ -1,4 +1,4 @@
-import type { BoxNode, DayLogSection, OutlineNode } from './types'
+import type { BoxNode, CornellCueNoteRow, DayLogSection, OutlineNode } from './types'
 import { newId } from './id'
 
 export const MIN_LOG_WORDS_FOR_SAVE = 5
@@ -18,8 +18,12 @@ export function emptyBoxNode(): BoxNode {
   return { id: newId(), title: '', body: '', children: [] }
 }
 
+function emptyCornellRow(): CornellCueNoteRow {
+  return { id: newId(), cue: '', notes: '' }
+}
+
 export function emptyLogSection(noteMode: DayLogSection['noteMode'] = 'default'): DayLogSection {
-  return {
+  const base: DayLogSection = {
     id: newId(),
     noteMode,
     title: '',
@@ -32,6 +36,39 @@ export function emptyLogSection(noteMode: DayLogSection['noteMode'] = 'default')
     boxedRoot: [],
     attachments: [],
   }
+  if (noteMode === 'cornell') {
+    base.cornellRows = [emptyCornellRow()]
+    base.cornellCueColumnPct = 35
+  }
+  return base
+}
+
+function normalizeCornellRows(s: DayLogSection): CornellCueNoteRow[] {
+  const raw = s.cornellRows
+  if (Array.isArray(raw) && raw.length > 0) {
+    return raw.map((r) => ({
+      id: typeof r.id === 'string' && r.id ? r.id : newId(),
+      cue: typeof r.cue === 'string' ? r.cue : '',
+      notes: typeof r.notes === 'string' ? r.notes : '',
+    }))
+  }
+  const cue = s.cornellCues?.trim() ?? ''
+  const notes = s.cornellNotes?.trim() ?? ''
+  return [{ id: newId(), cue, notes }]
+}
+
+/** Resolved Cornell rows (migrates legacy single cues/notes block). */
+export function getCornellRows(s: DayLogSection): CornellCueNoteRow[] {
+  return normalizeCornellRows(s)
+}
+
+function cornellRowsWordCount(rows: CornellCueNoteRow[]): number {
+  let n = 0
+  for (const r of rows) {
+    n += countWords(r.cue ?? '')
+    n += countWords(r.notes ?? '')
+  }
+  return n
 }
 
 function countOutlineWords(nodes: OutlineNode[] | undefined): number {
@@ -69,12 +106,10 @@ export function logSectionContentWords(s: DayLogSection): number {
   switch (s.noteMode) {
     case 'default':
       return countWords(s.details ?? '')
-    case 'cornell':
-      return (
-        countWords(s.cornellCues ?? '') +
-        countWords(s.cornellNotes ?? '') +
-        countWords(s.cornellSummary ?? '')
-      )
+    case 'cornell': {
+      const rows = normalizeCornellRows(s)
+      return cornellRowsWordCount(rows) + countWords(s.cornellSummary ?? '')
+    }
     case 'outline':
       return countOutlineWords(s.outlineRoot)
     case 'boxed':
@@ -94,9 +129,8 @@ export function logSectionMeetsSaveRule(s: DayLogSection): boolean {
     case 'default':
       return true
     case 'cornell': {
-      const hasNotes = !!(s.cornellNotes ?? '').trim()
-      const hasCues = !!(s.cornellCues ?? '').trim()
-      return hasNotes || hasCues
+      const rows = normalizeCornellRows(s)
+      return rows.some((r) => r.cue.trim() || r.notes.trim())
     }
     case 'outline':
       return (s.outlineRoot?.length ?? 0) > 0
@@ -114,7 +148,7 @@ export function dailyLogMeetsSaveRule(sections: DayLogSection[] | undefined): bo
 
 export function normalizeLogSection(s: DayLogSection): DayLogSection {
   const mode = s.noteMode ?? 'default'
-  return {
+  const base = {
     ...emptyLogSection(mode),
     id: s.id,
     title: s.title ?? '',
@@ -128,6 +162,15 @@ export function normalizeLogSection(s: DayLogSection): DayLogSection {
     boxedRoot: Array.isArray(s.boxedRoot) ? s.boxedRoot : [],
     attachments: Array.isArray(s.attachments) ? s.attachments : [],
   }
+  if (mode === 'cornell') {
+    base.cornellRows = normalizeCornellRows(s)
+    const p = s.cornellCueColumnPct
+    base.cornellCueColumnPct =
+      typeof p === 'number' && Number.isFinite(p) ? Math.min(70, Math.max(15, p)) : 35
+    base.cornellCues = ''
+    base.cornellNotes = ''
+  }
+  return base
 }
 
 /** v2 shape: { id, title, details } without noteMode */
@@ -142,6 +185,8 @@ export function migrateV2LogSectionToV3(raw: unknown): DayLogSection {
     noteMode: 'default',
     title: typeof o.title === 'string' ? o.title : '',
     details: typeof o.details === 'string' ? o.details : '',
+    cornellRows: [],
+    cornellCueColumnPct: 35,
     cornellCues: '',
     cornellNotes: '',
     cornellSummary: '',

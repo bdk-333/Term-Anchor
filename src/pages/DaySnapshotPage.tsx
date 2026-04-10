@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { LogSectionReadOnly } from '@/components/log/LogSectionReadOnly'
 import { useAppState } from '@/context/AppStateContext'
 import { daysUntil, semesterProgress, weekStartKey } from '@/lib/dates'
+import { formatPlannedTimeRange } from '@/lib/taskPlannedTime'
 import type { TaskItem } from '@/lib/types'
 import { isValidDateKey, streakCount, streakPips } from '@/lib/streak'
 
@@ -160,24 +161,59 @@ export function DaySnapshotPage() {
                   <span className={`h-2 w-2 rounded-full shrink-0 ${LANE_DOT[ti]}`} aria-hidden />
                 </div>
                 <ul className="space-y-2">
-                  {list.map((t) => (
-                    <li key={t.id} className="flex items-start gap-2">
-                      <span
-                        className={`mt-0.5 w-4 h-4 shrink-0 rounded border font-mono text-[10px] leading-4 text-center ${
-                          t.done
-                            ? 'bg-gs-success border-gs-success text-gs-bg'
-                            : 'border-gs-muted bg-gs-surface-muted/50'
-                        }`}
+                  {list.map((t) => {
+                    const timeLabel = formatPlannedTimeRange(t)
+                    return (
+                      <li
+                        key={t.id}
+                        className={[
+                          'rounded-lg border border-white/[0.06] bg-black/15 px-2 py-2',
+                          t.done && t.doneTimeMismatch
+                            ? 'border-amber-400/45 bg-amber-500/[0.06]'
+                            : '',
+                        ].join(' ')}
                       >
-                        {t.done ? '✓' : ''}
-                      </span>
-                      <span
-                        className={`text-sm flex-1 leading-snug ${t.done ? 'text-gs-muted line-through' : 'text-gs-text'}`}
-                      >
-                        {t.text}
-                      </span>
-                    </li>
-                  ))}
+                        <div className="flex items-start gap-2">
+                          <span
+                            className={`mt-0.5 w-4 h-4 shrink-0 rounded border font-mono text-[10px] leading-4 text-center ${
+                              t.done
+                                ? 'bg-gs-success border-gs-success text-gs-bg'
+                                : 'border-gs-muted bg-gs-surface-muted/50'
+                            }`}
+                          >
+                            {t.done ? '✓' : ''}
+                          </span>
+                          <div className={`flex-1 min-w-0 ${t.done ? 'text-gs-muted' : ''}`}>
+                            {timeLabel ? (
+                              <p className="font-mono text-[9px] text-sky-300/90 leading-tight mb-0.5">
+                                {timeLabel}
+                              </p>
+                            ) : null}
+                            <span
+                              className={`text-sm block leading-snug ${t.done ? 'line-through' : 'text-gs-text'}`}
+                            >
+                              {t.text}
+                            </span>
+                            {t.done && t.completedAt ? (
+                              <p className="font-mono text-[9px] text-gs-muted/90 mt-1">
+                                Done at{' '}
+                                {new Date(t.completedAt).toLocaleTimeString(undefined, {
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  second: '2-digit',
+                                })}
+                              </p>
+                            ) : null}
+                            {t.done && t.doneTimeMismatch ? (
+                              <p className="font-mono text-[9px] text-amber-200/90 mt-1 leading-snug">
+                                Completed outside the planned window (±5 min).
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             )

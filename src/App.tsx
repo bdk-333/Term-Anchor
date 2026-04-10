@@ -12,6 +12,7 @@ export default function App() {
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route element={<Layout />}>
         <Route index element={<DashboardPage />} />
+        <Route path="time" element={<Navigate to="/" replace />} />
         <Route path="week" element={<WeekPage />} />
         <Route path="day/:dateKey" element={<DaySnapshotPage />} />
         <Route path="settings" element={<SettingsPage />} />

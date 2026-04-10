@@ -434,6 +434,15 @@ body {
   padding: 0.5rem;
 }
 
+/* Same native select, sentence case + slightly larger (time panel, long labels) */
+.gs-native-select--plain {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.8125rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 /* Custom scrollbars (WebKit + Firefox) */
 .gs-scrollbar {
   scrollbar-width: thin;
@@ -575,4 +584,38 @@ body {
   .gs-fire-emoji:hover {
     animation: none !important;
   }
+}
+
+/* Sticky header clock — Outfit, soft cyan→lime→violet gradient */
+.gs-header-clock-digits {
+  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1rem, 2.2vw, 1.32rem);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.gs-header-clock-hm {
+  background: linear-gradient(118deg, #8ee9ff 0%, #e8ff47 42%, #c9a8ff 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 20px rgba(100, 210, 255, 0.14));
+}
+
+.gs-header-clock-ampm {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 600;
+  color: rgba(168, 186, 210, 0.5);
+  margin-left: 0.15rem;
+  letter-spacing: 0.06em;
+  vertical-align: 0.35em;
+}
+
+.gs-header-clock-sec {
+  margin-left: 0.3rem;
+  font-size: 0.58em;
+  font-weight: 400;
+  color: rgba(190, 198, 218, 0.36);
+  font-variant-numeric: tabular-nums;
 }

@@ -6,6 +6,7 @@ import http from 'node:http'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { timeTrackerHandle } from './time-tracker/http-handlers.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
@@ -152,6 +153,11 @@ const server = http.createServer(async (req, res) => {
     const u = new URL(req.url ?? '/', `http://${HOST}`)
     const pathname = decodeURIComponent(u.pathname)
 
+    if (pathname.startsWith('/api/time')) {
+      const handled = await timeTrackerHandle(req, res)
+      if (handled) return
+    }
+
     if (pathname === '/api/state') {
       await handleApiState(req, res)
       return
@@ -183,5 +189,6 @@ try {
 server.listen(PORT, HOST, () => {
   console.log(`Term Anchor — http://${HOST}:${PORT}/`)
   console.log(`State file: ${STATE_FILE}`)
+  console.log(`Time DB: ${path.join(DATA_DIR, 'time-tracking.db')}`)
   console.log('Close this window to stop the server.')
 })

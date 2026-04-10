@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { HeaderClock } from '@/components/HeaderClock'
 import { useAppState } from '@/context/AppStateContext'
 
 const steps = ['Anchor & term', 'Optional context', 'Ready']
@@ -51,7 +52,9 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="gs-onboarding-shell gs-container max-w-lg">
+    <>
+      <HeaderClock variant="fixed" />
+      <div className="gs-onboarding-shell gs-container max-w-lg pr-14 sm:pr-16">
       <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-8">
         Setup · local only, your device
       </p>
@@ -258,6 +261,7 @@ export function OnboardingPage() {
           </div>
         </section>
       )}
-    </div>
+      </div>
+    </>
   )
 }

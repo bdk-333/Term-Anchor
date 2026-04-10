@@ -13,12 +13,21 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import { addDays, addWeeks } from 'date-fns'
 import { useMemo, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { TaskPlannedTimeInline } from '@/components/task/TaskPlannedTimeInline'
+import { useTimeTracker } from '@/context/TimeTrackerContext'
 import { useAppState } from '@/context/AppStateContext'
 import { weekDayKeys, weekStartMonday, weekStartKey, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
+import {
+  clampMinutes,
+  computeDoneTimeMismatch,
+  formatPlannedTimeRange,
+  parseTimeInput,
+} from '@/lib/taskPlannedTime'
 import type { TaskItem } from '@/lib/types'
 import { isValidDateKey } from '@/lib/streak'
+import { deleteTask } from '@/lib/timeApi'
 
 /** ~3 months of extra days after the visible week (Mon–Sun). */
 const BEYOND_DAY_COUNT = 90
@@ -26,10 +35,23 @@ const BEYOND_DAY_COUNT = 90
 function SortableTaskRow({
   task,
   categoryLabel,
+  onToggle,
+  onPatch,
+  onRemove,
+  compact,
+  showTimerStart,
+  timeApiOk,
 }: {
   task: TaskItem
   categoryLabel: string
+  onToggle: (id: string) => void
+  onPatch: (id: string, patch: Partial<TaskItem>) => void
+  onRemove: (id: string) => void
+  compact?: boolean
+  showTimerStart?: boolean
+  timeApiOk?: boolean | null
 }) {
+  const navigate = useNavigate()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   })
@@ -38,25 +60,83 @@ function SortableTaskRow({
     transition,
     opacity: isDragging ? 0.45 : 1,
   }
+  const plannedLabel = formatPlannedTimeRange(task)
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-start gap-2 rounded-md border border-white/10 bg-black/25 px-2 py-2 text-sm text-gs-text shadow-[0_2px_12px_rgba(0,0,0,0.25)] backdrop-blur-sm"
+      className={[
+        'group flex items-start gap-2 rounded-md border px-2 py-2 text-sm text-gs-text shadow-[0_2px_12px_rgba(0,0,0,0.25)] backdrop-blur-sm',
+        task.done && task.doneTimeMismatch
+          ? 'border-amber-400/50 bg-amber-500/[0.08]'
+          : 'border-white/10 bg-black/25',
+      ].join(' ')}
     >
       <button
         type="button"
-        className="cursor-grab active:cursor-grabbing font-mono text-gs-muted touch-none px-1"
+        className="cursor-grab active:cursor-grabbing font-mono text-gs-muted touch-none px-1 shrink-0"
         {...attributes}
         {...listeners}
         aria-label="Drag task"
       >
         ⋮⋮
       </button>
-      <div className="flex-1 min-w-0">
-        <p className={task.done ? 'text-gs-muted line-through' : ''}>{task.text}</p>
+      <button
+        type="button"
+        onClick={() => onToggle(task.id)}
+        className={`mt-0.5 w-4 h-4 shrink-0 rounded border font-mono text-[10px] leading-4 ${
+          task.done
+            ? 'bg-gs-success border-gs-success text-gs-bg'
+            : 'border-gs-muted bg-gs-surface-muted/50'
+        }`}
+        aria-label={task.done ? 'Mark incomplete' : 'Mark done'}
+      >
+        {task.done ? '✓' : ''}
+      </button>
+      <div className={`flex-1 min-w-0 ${task.done ? 'text-gs-muted' : ''}`}>
+        {plannedLabel ? (
+          <p className="font-mono text-[9px] text-sky-300/90 leading-tight mb-0.5">{plannedLabel}</p>
+        ) : null}
+        <p className={task.done ? 'line-through' : ''}>{task.text}</p>
         <p className="font-mono text-[10px] text-gs-accent/80 mt-0.5">{categoryLabel}</p>
+        {task.done && task.completedAt ? (
+          <p className="font-mono text-[9px] text-gs-muted/90 mt-1">
+            Done at{' '}
+            {new Date(task.completedAt).toLocaleTimeString(undefined, {
+              hour: 'numeric',
+              minute: '2-digit',
+              second: '2-digit',
+            })}
+          </p>
+        ) : null}
+        {task.done && task.doneTimeMismatch ? (
+          <p className="font-mono text-[9px] text-amber-200/95 mt-1 leading-snug">
+            Outside planned window (±5 min).
+          </p>
+        ) : null}
+        <TaskPlannedTimeInline
+          task={task}
+          compact={compact}
+          onPatch={(patch) => onPatch(task.id, patch)}
+        />
+        {showTimerStart && timeApiOk === true && !task.done ? (
+          <button
+            type="button"
+            className="mt-1.5 font-mono text-[9px] uppercase tracking-wider px-2 py-1 rounded border border-gs-accent/40 text-gs-accent hover:bg-gs-accent/10"
+            onClick={() => navigate(`/?startPlannerTask=${encodeURIComponent(task.id)}`)}
+          >
+            Start timer
+          </button>
+        ) : null}
       </div>
+      <button
+        type="button"
+        className="opacity-0 group-hover:opacity-100 text-gs-muted hover:text-gs-danger font-mono text-xs shrink-0"
+        onClick={() => onRemove(task.id)}
+        aria-label="Remove task"
+      >
+        ×
+      </button>
     </div>
   )
 }
@@ -67,17 +147,31 @@ function DayColumn({
   items,
   categoryLabels,
   onAdd,
+  onToggleTask,
+  onPatchTask,
+  onRemoveTask,
   defaultCategoryId,
   compact,
+  todayKey,
+  timeApiOk,
 }: {
   dateKey: string
   isToday: boolean
   items: TaskItem[]
   categoryLabels: Map<string, string>
-  onAdd: (categoryId: string, text: string) => void
+  onAdd: (
+    categoryId: string,
+    text: string,
+    opts?: { plannedStartMinutes?: number | null; plannedEndMinutes?: number | null },
+  ) => void
+  onToggleTask: (id: string) => void
+  onPatchTask: (id: string, patch: Partial<TaskItem>) => void
+  onRemoveTask: (id: string) => void
   defaultCategoryId: string
   /** Narrower columns in the “Beyond” strip */
   compact?: boolean
+  todayKey: string
+  timeApiOk: boolean | null
 }) {
   const ids = items.map((t) => t.id)
   const [cat, setCat] = useState(defaultCategoryId)
@@ -115,7 +209,13 @@ function DayColumn({
               <SortableTaskRow
                 key={t.id}
                 task={t}
+                compact={compact}
                 categoryLabel={categoryLabels.get(t.categoryId) ?? '—'}
+                onToggle={onToggleTask}
+                onPatch={onPatchTask}
+                onRemove={onRemoveTask}
+                showTimerStart={dateKey === todayKey}
+                timeApiOk={timeApiOk}
               />
             ))}
           </div>
@@ -128,7 +228,24 @@ function DayColumn({
           e.preventDefault()
           const fd = new FormData(e.currentTarget)
           const text = String(fd.get('t') || '')
-          onAdd(cat, text)
+          const startRaw = String(fd.get('planStart') || '')
+          const endRaw = String(fd.get('planEnd') || '')
+          const hasEnd = fd.get('planHasEnd') === 'on'
+          const sm = startRaw ? parseTimeInput(startRaw) : null
+          const em = hasEnd && endRaw ? parseTimeInput(endRaw) : null
+          let plannedStartMinutes: number | undefined
+          let plannedEndMinutes: number | undefined
+          if (sm != null) {
+            plannedStartMinutes = clampMinutes(sm)
+            if (em != null) {
+              plannedEndMinutes = clampMinutes(Math.max(em, plannedStartMinutes))
+            }
+          }
+          onAdd(cat, text, {
+            plannedStartMinutes: plannedStartMinutes ?? undefined,
+            plannedEndMinutes:
+              plannedStartMinutes != null && hasEnd && em != null ? plannedEndMinutes : undefined,
+          })
           e.currentTarget.reset()
         }}
       >
@@ -149,6 +266,25 @@ function DayColumn({
           placeholder="Add task…"
           className="gs-glass-input px-2 py-1.5 font-mono text-xs text-gs-text placeholder:text-gs-muted/80"
         />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="font-mono text-[8px] text-gs-muted uppercase shrink-0">When</span>
+          <input
+            type="time"
+            name="planStart"
+            aria-label="Planned start"
+            className="gs-glass-input w-[6.25rem] px-1 py-1 font-mono text-[9px] text-gs-text"
+          />
+          <label className="flex items-center gap-0.5 font-mono text-[8px] text-gs-muted">
+            <input type="checkbox" name="planHasEnd" className="rounded border-gs-border scale-90" />
+            End
+          </label>
+          <input
+            type="time"
+            name="planEnd"
+            aria-label="Planned end"
+            className="gs-glass-input w-[6.25rem] px-1 py-1 font-mono text-[9px] text-gs-text"
+          />
+        </div>
         <button
           type="submit"
           className="font-mono text-[10px] uppercase py-1.5 rounded-md border border-white/15 text-gs-muted hover:text-gs-accent hover:border-gs-accent/50 hover:shadow-[0_0_14px_-4px_rgba(232,255,71,0.35)] transition-all"
@@ -171,6 +307,7 @@ function neonRangeBtn(active: boolean) {
 
 export function WeekPage() {
   const { state, setState } = useAppState()
+  const { apiOk: timeApiOk } = useTimeTracker()
   const [weekOffset, setWeekOffset] = useState(0)
   const [showBeyond, setShowBeyond] = useState(false)
   const [showBefore, setShowBefore] = useState(false)
@@ -276,7 +413,12 @@ export function WeekPage() {
     }))
   }
 
-  function addTask(dateKey: string, categoryId: string, text: string) {
+  function addTask(
+    dateKey: string,
+    categoryId: string,
+    text: string,
+    opts?: { plannedStartMinutes?: number | null; plannedEndMinutes?: number | null },
+  ) {
     const t = text.trim()
     if (!t) return
     setState((s) => {
@@ -285,7 +427,75 @@ export function WeekPage() {
         ...s,
         tasksByDay: {
           ...s.tasksByDay,
-          [dateKey]: { items: [...prev, { id: newId(), categoryId, text: t, done: false }] },
+          [dateKey]: {
+            items: [
+              ...prev,
+              {
+                id: newId(),
+                categoryId,
+                text: t,
+                done: false,
+                plannedStartMinutes: opts?.plannedStartMinutes ?? undefined,
+                plannedEndMinutes: opts?.plannedEndMinutes ?? undefined,
+              },
+            ],
+          },
+        },
+      }
+    })
+  }
+
+  function patchTask(dateKey: string, taskId: string, patch: Partial<TaskItem>) {
+    setState((s) => {
+      const items = s.tasksByDay[dateKey]?.items ?? []
+      return {
+        ...s,
+        tasksByDay: {
+          ...s.tasksByDay,
+          [dateKey]: {
+            items: items.map((x) => (x.id === taskId ? { ...x, ...patch } : x)),
+          },
+        },
+      }
+    })
+  }
+
+  function toggleTask(dateKey: string, id: string) {
+    setState((s) => {
+      const items = s.tasksByDay[dateKey]?.items ?? []
+      const t = items.find((x) => x.id === id)
+      if (!t) return s
+      const next = items.map((x) => {
+        if (x.id !== id) return x
+        if (x.done) {
+          return { ...x, done: false, completedAt: undefined, doneTimeMismatch: undefined }
+        }
+        const completedAt = new Date().toISOString()
+        const mismatch =
+          x.plannedStartMinutes != null &&
+          computeDoneTimeMismatch(dateKey, x, completedAt, 5)
+        return { ...x, done: true, completedAt, doneTimeMismatch: mismatch }
+      })
+      return {
+        ...s,
+        tasksByDay: { ...s.tasksByDay, [dateKey]: { items: next } },
+      }
+    })
+  }
+
+  function removeTask(dateKey: string, taskId: string) {
+    const items = state.tasksByDay[dateKey]?.items ?? []
+    const t = items.find((x) => x.id === taskId)
+    if (t?.timeTaskId != null) {
+      void deleteTask(t.timeTaskId).catch(() => {})
+    }
+    setState((s) => {
+      const list = s.tasksByDay[dateKey]?.items ?? []
+      return {
+        ...s,
+        tasksByDay: {
+          ...s.tasksByDay,
+          [dateKey]: { items: list.filter((x) => x.id !== taskId) },
         },
       }
     })
@@ -399,7 +609,12 @@ export function WeekPage() {
                   items={items}
                   categoryLabels={categoryLabels}
                   defaultCategoryId={defaultCategoryId}
-                  onAdd={(cid, text) => addTask(dateKey, cid, text)}
+                  onAdd={(cid, text, opts) => addTask(dateKey, cid, text, opts)}
+                  onToggleTask={(id) => toggleTask(dateKey, id)}
+                  onPatchTask={(id, patch) => patchTask(dateKey, id, patch)}
+                  onRemoveTask={(id) => removeTask(dateKey, id)}
+                  todayKey={todayKey}
+                  timeApiOk={timeApiOk}
                 />
               </div>
             )
@@ -461,7 +676,12 @@ export function WeekPage() {
                       items={items}
                       categoryLabels={categoryLabels}
                       defaultCategoryId={defaultCategoryId}
-                      onAdd={(cid, text) => addTask(dateKey, cid, text)}
+                      onAdd={(cid, text, opts) => addTask(dateKey, cid, text, opts)}
+                      onToggleTask={(id) => toggleTask(dateKey, id)}
+                      onPatchTask={(id, patch) => patchTask(dateKey, id, patch)}
+                      onRemoveTask={(id) => removeTask(dateKey, id)}
+                      todayKey={todayKey}
+                      timeApiOk={timeApiOk}
                       compact
                     />
                   </div>
@@ -481,10 +701,10 @@ export function WeekPage() {
       </DndContext>
 
       <p className="font-mono text-[10px] text-gs-muted leading-relaxed">
-        Drag tasks between any visible days.{' '}
-        <strong className="text-[#6dff6d]">Before</strong> lists every saved day;{' '}
-        <strong className="text-[#6dff6d]">Beyond</strong> adds the next ~3 months after this week. Day types
-        (campus / home / explore) arrive in a future update.
+        Drag tasks between days. Optional <span className="text-gs-text/85">When</span> times live on each
+        task; marking done on a day compares your clock to that plan (±5 min).{' '}
+        <strong className="text-[#6dff6d]">Before</strong> lists saved days;{' '}
+        <strong className="text-[#6dff6d]">Beyond</strong> extends ~3 months after this week.
       </p>
     </div>
   )

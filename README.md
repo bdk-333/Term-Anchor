@@ -1,11 +1,12 @@
 # Term Anchor
 
-A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, weekly planner with drag-and-drop, habits, and streaks.
+A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, weekly planner with drag-and-drop, habits, streaks, and **integrated time tracking** (projects, tasks, timer, today’s totals).
 
 ## Where your data lives
 
 - **Local server (recommended):** Run the app with **`Start-TermAnchor.cmd`** (Windows) or **`npm start`** after a build. Your progress is saved in **`data/term-anchor-state.json`** next to the project. The app is served at **http://127.0.0.1:8787/** so **Edge, Brave, Chrome, or any browser** can use the **same file**—switch browsers without starting over. You do not need PowerShell as Administrator.
-- **Static hosting / no server:** Data stays in the browser (`localStorage`). Use **Settings → Export JSON** for backups.
+- **Time tracking (local server only):** When you use **`npm run dev`** or **`npm start`**, the **Today** page talks to **`/api/time/*`** (timer, projects, tasks, totals). Data is stored in **`data/time-tracking.db`** (SQLite via Node’s built-in **`node:sqlite`**). There is no separate time app to run; static hosting or opening `dist/index.html` without the Node server **cannot** persist timer data.
+- **Static hosting / no server:** Planner data stays in the browser (`localStorage`). The time section on **Today** shows a short message that the API is unavailable. Use **Settings → Export JSON** for planner backups.
 
 ## Easiest way to run (Windows)
 
@@ -23,7 +24,7 @@ npm install
 npm run dev
 ```
 
-`npm run dev` uses the same **`data/term-anchor-state.json`** API as the production local server, so dev and “double-click” runs share one data file when you use the same project folder.
+`npm run dev` uses the same **`data/term-anchor-state.json`** API as the production local server, and the same **`/api/time/*`** endpoints as **`npm start`**, so dev and “double-click” runs share planner state and the time database when you use the same project folder.
 
 ## Other launchers
 
@@ -37,7 +38,13 @@ npm run build
 npm start
 ```
 
-Static output is in **`dist/`**. The Node script **`scripts/term-anchor-server.mjs`** serves `dist/` and reads/writes **`data/term-anchor-state.json`**.
+Static output is in **`dist/`**. The Node script **`scripts/term-anchor-server.mjs`** serves `dist/` and reads/writes **`data/term-anchor-state.json`**, and handles **`/api/time/*`** for the Today page timer (SQLite under **`scripts/time-tracker/`**).
+
+## Time tracking on Today
+
+On **Today** (home), use **Start timer** on a lane task or the **Time tracking** section: create **projects** and **tasks** in the database, **Start** an entry, then **Pause**, **Resume**, and **Stop**. Starting another task stops the previous one at the current minute. **Tracked time today** shows minute-level totals for the local calendar day. Old links to **`/time`** redirect to **`/`**.
+
+Requires **Node 22.5+** (for `node:sqlite`). No extra npm native modules.
 
 ## Backup and restore
 
@@ -45,7 +52,7 @@ Open **Settings** in the app → **Export JSON** / **Import JSON**. Import repla
 
 ## Tech stack
 
-Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit.
+Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit. Local APIs: file-backed state + **`node:sqlite`** for time tracking.
 
 ## Roadmap (v1.1)
 
