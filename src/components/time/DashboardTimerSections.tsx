@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useAppState } from '@/context/AppStateContext'
 import { useTimeTracker } from '@/context/TimeTrackerContext'
+import { OTHERS_LANE_ID, laneLabelForId } from '@/lib/timeLane'
 import { toDateKey } from '@/lib/dates'
 import {
   createProject,
@@ -16,7 +17,55 @@ import {
   timerResume,
   updateProject,
   updateTask,
+  type TimeProject,
+  type TimeTask,
 } from '@/lib/timeApi'
+
+function TaskProjectSelect({
+  value,
+  onChange,
+  projectGroups,
+  compact,
+}: {
+  value: string
+  onChange: (projectId: string) => void
+  projectGroups: Array<{ key: string; label: string; projects: TimeProject[] }>
+  compact?: boolean
+}) {
+  return (
+    <select
+      aria-label="Project for time task"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`gs-native-select gs-native-select--plain ${compact ? 'w-full' : 'sm:w-52 sm:min-w-[12rem]'}`}
+    >
+      <option value="">No project (Others lane)</option>
+      {projectGroups.map((g) => (
+        <optgroup key={g.key} label={g.label}>
+          {g.projects.map((p) => (
+            <option key={p.id} value={String(p.id)}>
+              {p.name}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
+  )
+}
+
+function formatTaskOptionLabel(
+  t: TimeTask,
+  categories: ReadonlyArray<{ id: string; label: string }>,
+): string {
+  if (!t.projectId) {
+    return `Others · ${t.name}`
+  }
+  const lane = t.projectLaneId
+    ? laneLabelForId(t.projectLaneId, categories)
+    : '—'
+  const proj = t.projectName ?? '—'
+  return `${lane} · ${proj} · ${t.name}`
+}
 
 export function DashboardTimerSections() {
   const { state } = useAppState()
@@ -39,6 +88,7 @@ export function DashboardTimerSections() {
   } = useTimeTracker()
 
   const [newProjectName, setNewProjectName] = useState('')
+  const [newProjectLaneId, setNewProjectLaneId] = useState(OTHERS_LANE_ID)
   const [newTaskName, setNewTaskName] = useState('')
   const [newTaskProjectId, setNewTaskProjectId] = useState('')
   const [startTaskId, setStartTaskId] = useState('')
@@ -50,14 +100,43 @@ export function DashboardTimerSections() {
     return items.find((t) => t.timeTaskId === current.taskId) ?? null
   }, [current, state.tasksByDay, todayKey])
 
+  const projectGroups = useMemo(() => {
+    const cats = state.taskCategories
+    const groups: Array<{ key: string; label: string; projects: TimeProject[] }> = []
+    for (const c of cats) {
+      const list = projects.filter((p) => p.laneId === c.id).sort((a, b) => a.name.localeCompare(b.name))
+      if (list.length) groups.push({ key: c.id, label: c.label, projects: list })
+    }
+    const others = projects
+      .filter((p) => p.laneId === OTHERS_LANE_ID)
+      .sort((a, b) => a.name.localeCompare(b.name))
+    if (others.length) groups.push({ key: 'others', label: 'Others', projects: others })
+    return groups
+  }, [projects, state.taskCategories])
+
+  const laneOptions = useMemo(() => {
+    const opts = state.taskCategories.map((c) => ({ id: c.id, label: c.label }))
+    return [...opts, { id: OTHERS_LANE_ID, label: 'Others' }]
+  }, [state.taskCategories])
+
   const sortedTasks = useMemo(() => {
+    const laneOrder = new Map<string, number>()
+    state.taskCategories.forEach((c, i) => laneOrder.set(c.id, i))
+    laneOrder.set(OTHERS_LANE_ID, state.taskCategories.length)
     return [...tasks].sort((a, b) => {
-      const pa = a.projectName ?? ''
-      const pb = b.projectName ?? ''
-      if (pa !== pb) return pa.localeCompare(pb)
+      const la =
+        a.projectId == null ? OTHERS_LANE_ID : (a.projectLaneId ?? OTHERS_LANE_ID)
+      const lb =
+        b.projectId == null ? OTHERS_LANE_ID : (b.projectLaneId ?? OTHERS_LANE_ID)
+      const pa = laneOrder.get(la) ?? 99
+      const pb = laneOrder.get(lb) ?? 99
+      if (pa !== pb) return pa - pb
+      const na = a.projectName ?? ''
+      const nb = b.projectName ?? ''
+      if (na !== nb) return na.localeCompare(nb)
       return a.name.localeCompare(b.name)
     })
-  }, [tasks])
+  }, [tasks, state.taskCategories])
 
   if (apiOk === false) {
     return (
@@ -178,8 +257,7 @@ export function DashboardTimerSections() {
               <option value="">Select task…</option>
               {sortedTasks.map((t) => (
                 <option key={t.id} value={String(t.id)}>
-                  {t.projectName ? `${t.projectName} — ` : ''}
-                  {t.name}
+                  {formatTaskOptionLabel(t, state.taskCategories)}
                 </option>
               ))}
             </select>
@@ -236,24 +314,139 @@ export function DashboardTimerSections() {
       </section>
 
       <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
-        <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Projects (time DB)</h3>
+        <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Tasks (time database)</h3>
+        <p className="text-xs text-gs-muted leading-relaxed max-w-2xl">
+          Most entries have <span className="text-gs-text/85">no project</span> — they belong to the{' '}
+          <span className="text-gs-text/85">Others</span> lane for tracking. Optionally attach a project (scoped
+          to a lane below) after you create it.
+        </p>
+        <ul className="space-y-3">
+          {sortedTasks.map((t) => (
+            <li key={t.id} className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2">
+              <input
+                defaultValue={t.name}
+                key={`${t.id}-${t.updated_at}-name`}
+                onBlur={(e) => {
+                  const name = e.target.value.trim()
+                  if (!name || name === t.name) return
+                  void runWithBusy(async () => {
+                    const next = await updateTask(t.id, name, t.projectId)
+                    setTasks((list) => list.map((x) => (x.id === next.id ? next : x)))
+                  })
+                }}
+                className="gs-glass-input flex-1 min-w-0 px-3 py-2 font-mono text-sm text-gs-text"
+              />
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center w-full sm:w-auto sm:min-w-[14rem]">
+                <TaskProjectSelect
+                  key={`tp-${t.id}-${t.projectId ?? 'none'}-${t.updated_at}`}
+                  value={t.projectId == null ? '' : String(t.projectId)}
+                  projectGroups={projectGroups}
+                  compact
+                  onChange={(v) => {
+                    const pid = v === '' ? null : Number(v)
+                    void runWithBusy(async () => {
+                      const next = await updateTask(t.id, t.name, pid)
+                      setTasks((list) => list.map((x) => (x.id === next.id ? next : x)))
+                    })
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="font-mono text-xs text-gs-danger px-2 py-2 shrink-0 disabled:opacity-30 self-end sm:self-auto"
+                  onClick={() =>
+                    void runWithBusy(async () => {
+                      await deleteTask(t.id)
+                      await refreshAll()
+                    })
+                  }
+                >
+                  Remove
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="pt-2 border-t border-white/[0.08] space-y-2">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">Add task</p>
+          <div className="flex flex-col gap-2">
+            <input
+              value={newTaskName}
+              onChange={(e) => setNewTaskName(e.target.value)}
+              placeholder="Task name"
+              className="gs-glass-input w-full px-3 py-2 font-mono text-sm text-gs-text"
+            />
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap">
+              <TaskProjectSelect
+                value={newTaskProjectId}
+                onChange={setNewTaskProjectId}
+                projectGroups={projectGroups}
+              />
+              <button
+                type="button"
+                disabled={busy || !newTaskName.trim()}
+                className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md border border-white/12 hover:border-gs-accent/50 disabled:opacity-40 sm:ml-auto"
+                onClick={() =>
+                  void runWithBusy(async () => {
+                    const pid = newTaskProjectId === '' ? null : Number(newTaskProjectId)
+                    await createTask(newTaskName, pid)
+                    setNewTaskName('')
+                    setNewTaskProjectId('')
+                    setTasks(await fetchTasks())
+                  })
+                }
+              >
+                Add task
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
+        <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Projects (time database)</h3>
+        <p className="text-xs text-gs-muted leading-relaxed max-w-2xl">
+          Each project sits under one <span className="text-gs-text/85">lane</span> (same names as your task
+          lanes on Today, plus <span className="text-gs-text/85">Others</span>). Tasks in the list above can
+          reference these projects; unassigned tasks stay in the Others lane.
+        </p>
         <ul className="space-y-3">
           {projects.map((p) => (
-            <li key={p.id} className="flex gap-2 items-center">
+            <li key={p.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
               <input
                 defaultValue={p.name}
-                key={`${p.id}-${p.updated_at}`}
+                key={`${p.id}-${p.updated_at}-n`}
                 onBlur={(e) => {
                   const name = e.target.value.trim()
                   if (!name || name === p.name) return
                   void runWithBusy(async () => {
-                    const next = await updateProject(p.id, name)
+                    const next = await updateProject(p.id, name, p.laneId)
                     setProjects((list) => list.map((x) => (x.id === next.id ? next : x)))
                     setTasks(await fetchTasks())
                   })
                 }}
-                className="gs-glass-input flex-1 px-3 py-2 font-mono text-sm text-gs-text"
+                className="gs-glass-input flex-1 min-w-[8rem] px-3 py-2 font-mono text-sm text-gs-text"
               />
+              <select
+                aria-label={`Lane for project ${p.name}`}
+                defaultValue={p.laneId}
+                key={`${p.id}-${p.updated_at}-lane`}
+                className="gs-native-select gs-native-select--plain sm:w-48"
+                onChange={(e) => {
+                  const laneId = e.target.value
+                  void runWithBusy(async () => {
+                    const next = await updateProject(p.id, p.name, laneId)
+                    setProjects((list) => list.map((x) => (x.id === next.id ? next : x)))
+                    setTasks(await fetchTasks())
+                  })
+                }}
+              >
+                {laneOptions.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 disabled={busy}
@@ -270,120 +463,43 @@ export function DashboardTimerSections() {
             </li>
           ))}
         </ul>
-        <div className="flex gap-2 flex-wrap">
-          <input
-            value={newProjectName}
-            onChange={(e) => setNewProjectName(e.target.value)}
-            placeholder="New project name"
-            className="gs-glass-input flex-1 min-w-[10rem] px-3 py-2 font-mono text-sm text-gs-text"
-          />
-          <button
-            type="button"
-            disabled={busy || !newProjectName.trim()}
-            className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md border border-white/12 hover:border-gs-accent/50 disabled:opacity-40"
-            onClick={() =>
-              void runWithBusy(async () => {
-                await createProject(newProjectName)
-                setNewProjectName('')
-                setProjects(await fetchProjects())
-              })
-            }
-          >
-            Add project
-          </button>
-        </div>
-      </section>
-
-      <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
-        <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Tasks (time DB)</h3>
-        <ul className="space-y-3">
-          {sortedTasks.map((t) => (
-            <li key={t.id} className="flex flex-col sm:flex-row gap-2 sm:items-center">
-              <input
-                defaultValue={t.name}
-                key={`${t.id}-${t.updated_at}`}
-                onBlur={(e) => {
-                  const name = e.target.value.trim()
-                  if (!name || name === t.name) return
-                  void runWithBusy(async () => {
-                    const next = await updateTask(t.id, name, t.projectId)
-                    setTasks((list) => list.map((x) => (x.id === next.id ? next : x)))
-                  })
-                }}
-                className="gs-glass-input flex-1 px-3 py-2 font-mono text-sm text-gs-text"
-              />
-              <select
-                aria-label={`Project for task ${t.name}`}
-                key={`${t.id}-${t.projectId}-${t.updated_at}`}
-                defaultValue={t.projectId == null ? '' : String(t.projectId)}
-                onChange={(e) => {
-                  const v = e.target.value
-                  const pid = v === '' ? null : Number(v)
-                  void runWithBusy(async () => {
-                    const next = await updateTask(t.id, t.name, pid)
-                    setTasks((list) => list.map((x) => (x.id === next.id ? next : x)))
-                  })
-                }}
-                className="gs-native-select gs-native-select--plain sm:w-44 sm:min-w-[11rem]"
-              >
-                <option value="">No project</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={String(p.id)}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                disabled={busy}
-                className="font-mono text-xs text-gs-danger px-2 py-2 sm:self-auto self-end disabled:opacity-30"
-                onClick={() =>
-                  void runWithBusy(async () => {
-                    await deleteTask(t.id)
-                    await refreshAll()
-                  })
-                }
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-        <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
-          <input
-            value={newTaskName}
-            onChange={(e) => setNewTaskName(e.target.value)}
-            placeholder="New task name"
-            className="gs-glass-input flex-1 min-w-[10rem] px-3 py-2 font-mono text-sm text-gs-text"
-          />
-          <select
-            aria-label="Project for new task"
-            value={newTaskProjectId}
-            onChange={(e) => setNewTaskProjectId(e.target.value)}
-            className="gs-native-select gs-native-select--plain sm:w-44 sm:min-w-[11rem]"
-          >
-            <option value="">No project</option>
-            {projects.map((p) => (
-              <option key={p.id} value={String(p.id)}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            disabled={busy || !newTaskName.trim()}
-            className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md border border-white/12 hover:border-gs-accent/50 disabled:opacity-40"
-            onClick={() =>
-              void runWithBusy(async () => {
-                const pid = newTaskProjectId === '' ? null : Number(newTaskProjectId)
-                await createTask(newTaskName, pid)
-                setNewTaskName('')
-                setTasks(await fetchTasks())
-              })
-            }
-          >
-            Add task
-          </button>
+        <div className="pt-2 border-t border-white/[0.08] space-y-2">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">Add project</p>
+          <div className="flex flex-col sm:flex-row gap-2 flex-wrap sm:items-center">
+            <input
+              value={newProjectName}
+              onChange={(e) => setNewProjectName(e.target.value)}
+              placeholder="Project name"
+              className="gs-glass-input flex-1 min-w-[10rem] px-3 py-2 font-mono text-sm text-gs-text"
+            />
+            <select
+              aria-label="Lane for new project"
+              value={newProjectLaneId}
+              onChange={(e) => setNewProjectLaneId(e.target.value)}
+              className="gs-native-select gs-native-select--plain sm:w-48"
+            >
+              {laneOptions.map((o) => (
+                <option key={o.id} value={o.id}>
+                  Lane: {o.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={busy || !newProjectName.trim()}
+              className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md border border-white/12 hover:border-gs-accent/50 disabled:opacity-40"
+              onClick={() =>
+                void runWithBusy(async () => {
+                  await createProject(newProjectName, newProjectLaneId)
+                  setNewProjectName('')
+                  setNewProjectLaneId(OTHERS_LANE_ID)
+                  setProjects(await fetchProjects())
+                })
+              }
+            >
+              Add project
+            </button>
+          </div>
         </div>
       </section>
     </div>

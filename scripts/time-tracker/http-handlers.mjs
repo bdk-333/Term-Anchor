@@ -89,7 +89,7 @@ export async function timeTrackerHandle(req, res) {
     }
     if (method === 'POST' && pathname === '/api/time/projects') {
       const body = await readJson(req)
-      const project = projectService.createProject(body?.name)
+      const project = projectService.createProject(body?.name, body?.laneId)
       sendJson(res, 201, { project })
       return true
     }
@@ -99,7 +99,7 @@ export async function timeTrackerHandle(req, res) {
         const id = m[1]
         if (method === 'PATCH') {
           const body = await readJson(req)
-          const project = projectService.updateProject(id, body?.name)
+          const project = projectService.updateProject(id, body?.name, body?.laneId)
           sendJson(res, 200, { project })
           return true
         }

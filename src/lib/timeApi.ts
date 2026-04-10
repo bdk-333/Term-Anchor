@@ -1,6 +1,8 @@
 export type TimeProject = {
   id: number
   name: string
+  /** Planner lane id or `__others__` for the Others bucket */
+  laneId: string
   created_at: string
   updated_at: string
 }
@@ -10,6 +12,8 @@ export type TimeTask = {
   name: string
   projectId: number | null
   projectName: string | null
+  /** Set when `projectId` is set; which planner lane the project belongs to */
+  projectLaneId?: string | null
   created_at: string
   updated_at: string
 }
@@ -87,23 +91,27 @@ export async function fetchProjects(): Promise<TimeProject[]> {
   return j.projects ?? []
 }
 
-export async function createProject(name: string): Promise<TimeProject> {
+export async function createProject(name: string, laneId: string): Promise<TimeProject> {
   const j = await jsonRes<{ project: TimeProject }>(
     await fetch('/api/time/projects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, laneId }),
     }),
   )
   return j.project
 }
 
-export async function updateProject(id: number, name: string): Promise<TimeProject> {
+export async function updateProject(
+  id: number,
+  name: string,
+  laneId?: string,
+): Promise<TimeProject> {
   const j = await jsonRes<{ project: TimeProject }>(
     await fetch(`/api/time/projects/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, ...(laneId !== undefined ? { laneId } : {}) }),
     }),
   )
   return j.project

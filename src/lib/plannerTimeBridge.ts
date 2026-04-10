@@ -1,4 +1,5 @@
 import type { AppState, TaskItem } from '@/lib/types'
+import { OTHERS_LANE_ID } from '@/lib/timeLane'
 import { createProject, createTask, fetchProjects, fetchTasks } from '@/lib/timeApi'
 
 export function findPlannerTask(
@@ -30,22 +31,25 @@ export function patchPlannerTaskInState(
 
 /**
  * Resolves a numeric time-tracker task id for a planner row (creates project + task if needed).
+ * Uses one default project per planner lane (same name as the lane label) unless a matching row exists.
  */
 export async function ensureTimeTaskForPlanner(params: {
   text: string
+  categoryId: string
   categoryLabel: string
   existingTimeTaskId?: number | null
 }): Promise<number> {
-  const { text, categoryLabel, existingTimeTaskId } = params
+  const { text, categoryId, categoryLabel, existingTimeTaskId } = params
   const tasks = await fetchTasks()
   if (existingTimeTaskId != null && tasks.some((t) => t.id === existingTimeTaskId)) {
     return existingTimeTaskId
   }
   const projects = await fetchProjects()
+  const laneId = categoryId.trim() || OTHERS_LANE_ID
   const label = categoryLabel.trim() || 'Tasks'
-  let proj = projects.find((p) => p.name === label)
+  let proj = projects.find((p) => p.name === label && p.laneId === laneId)
   if (!proj) {
-    proj = await createProject(label)
+    proj = await createProject(label, laneId)
   }
   const name = text.trim() || 'Task'
   const created = await createTask(name, proj.id)

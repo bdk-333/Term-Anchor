@@ -3,14 +3,15 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS projects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
+  lane_id TEXT NOT NULL DEFAULT '__others__',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   deleted_at TEXT,
   CHECK (length(name) > 0 AND length(name) <= 100)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_name_active
-ON projects(lower(name))
+CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_lane_name_active
+ON projects(lane_id, lower(name))
 WHERE deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS tasks (

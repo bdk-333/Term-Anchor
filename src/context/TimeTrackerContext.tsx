@@ -131,6 +131,7 @@ export function TimeTrackerProvider({ children }: { children: ReactNode }) {
         const cat = s.taskCategories.find((c) => c.id === found.task.categoryId)
         const tid = await ensureTimeTaskForPlanner({
           text: found.task.text,
+          categoryId: found.task.categoryId,
           categoryLabel: cat?.label ?? 'Task',
           existingTimeTaskId: found.task.timeTaskId,
         })

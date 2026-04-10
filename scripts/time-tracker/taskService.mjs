@@ -34,7 +34,8 @@ function assertProjectExists(projectId) {
 export function listTasks() {
   return db
     .prepare(
-      `SELECT t.id, t.name, t.project_id AS projectId, p.name AS projectName, t.created_at, t.updated_at
+      `SELECT t.id, t.name, t.project_id AS projectId, p.name AS projectName,
+              p.lane_id AS projectLaneId, t.created_at, t.updated_at
        FROM tasks t
        LEFT JOIN projects p ON p.id = t.project_id AND p.deleted_at IS NULL
        WHERE t.deleted_at IS NULL
@@ -54,7 +55,8 @@ export function createTask(name, projectId) {
       .run(cleanName, normalizedProjectId, now, now)
     return db
       .prepare(
-        `SELECT t.id, t.name, t.project_id AS projectId, p.name AS projectName, t.created_at, t.updated_at
+        `SELECT t.id, t.name, t.project_id AS projectId, p.name AS projectName,
+                p.lane_id AS projectLaneId, t.created_at, t.updated_at
          FROM tasks t
          LEFT JOIN projects p ON p.id = t.project_id AND p.deleted_at IS NULL
          WHERE t.id = ?`,
@@ -91,7 +93,8 @@ export function updateTask(id, name, projectId) {
   }
   return db
     .prepare(
-      `SELECT t.id, t.name, t.project_id AS projectId, p.name AS projectName, t.created_at, t.updated_at
+      `SELECT t.id, t.name, t.project_id AS projectId, p.name AS projectName,
+              p.lane_id AS projectLaneId, t.created_at, t.updated_at
        FROM tasks t
        LEFT JOIN projects p ON p.id = t.project_id AND p.deleted_at IS NULL
        WHERE t.id = ?`,
