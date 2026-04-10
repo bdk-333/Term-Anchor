@@ -1,11 +1,11 @@
 # Term Anchor
 
-A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, weekly planner with drag-and-drop, habits, streaks, and **integrated time tracking** (projects, tasks, timer, today’s totals).
+A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, weekly planner with drag-and-drop, habits, streaks, **sectioned daily log** (Cornell / outline / boxed notes, attachments), and **integrated time tracking** (lanes → projects → tasks, timer, today’s totals).
 
 ## Where your data lives
 
 - **Local server (recommended):** Run the app with **`Start-TermAnchor.cmd`** (Windows) or **`npm start`** after a build. Your progress is saved in **`data/term-anchor-state.json`** next to the project. The app is served at **http://127.0.0.1:8787/** so **Edge, Brave, Chrome, or any browser** can use the **same file**—switch browsers without starting over. You do not need PowerShell as Administrator.
-- **Time tracking (local server only):** When you use **`npm run dev`** or **`npm start`**, the **Today** page talks to **`/api/time/*`** (timer, projects, tasks, totals). Data is stored in **`data/time-tracking.db`** (SQLite via Node’s built-in **`node:sqlite`**). There is no separate time app to run; static hosting or opening `dist/index.html` without the Node server **cannot** persist timer data.
+- **Time tracking (local server only):** When you use **`npm run dev`** or **`npm start`**, the **Today** page talks to **`/api/time/*`** (timer, projects, tasks, totals). Data is stored in **`data/time-tracking.db`** (SQLite via Node’s built-in **`node:sqlite`**). There is no separate time app to run; static hosting or opening `dist/index.html` without the Node server **cannot** persist timer data. **Backup:** copy **`data/time-tracking.db`** if you want to archive time entries; **Settings → Export JSON** does not include the SQLite file.
 - **Static hosting / no server:** Planner data stays in the browser (`localStorage`). The time section on **Today** shows a short message that the API is unavailable. Use **Settings → Export JSON** for planner backups.
 
 ## Easiest way to run (Windows)
@@ -42,13 +42,21 @@ Static output is in **`dist/`**. The Node script **`scripts/term-anchor-server.m
 
 ## Time tracking on Today
 
-On **Today** (home), use **Start timer** on a lane task or the **Time tracking** section: create **projects** and **tasks** in the database, **Start** an entry, then **Pause**, **Resume**, and **Stop**. Starting another task stops the previous one at the current minute. **Tracked time today** shows minute-level totals for the local calendar day. Old links to **`/time`** redirect to **`/`**.
+On **Today** (home), use **Start timer** on a lane task or open the **Time tracking** section. Model: **lane** (same names as your planner lanes, plus **Others**) → optional **projects** (each project lives in one lane) → **tasks** (most tasks have **no project** and roll up to the Others lane; you can attach a project when needed). The UI lists **tasks** before **projects**; create a project with a lane, then pick it from the task **Project** dropdown (all projects are listed). **Start** an ad-hoc or linked task, then **Pause**, **Resume**, and **Stop**. Starting another task stops the previous one at the current minute. **Tracked time today** shows minute-level totals for the local calendar day. Old links to **`/time`** redirect to **`/`**.
 
 Requires **Node 22.5+** (for `node:sqlite`). No extra npm native modules.
 
+## Daily log and notes (Today)
+
+The **daily log** supports multiple sections, drag reorder, and per-section **note mode**: **Cornell**, **outline**, or **boxed**. You can attach files where the UI allows. Layout is tuned for wider reading and editing on large screens.
+
 ## Backup and restore
 
-Open **Settings** in the app → **Export JSON** / **Import JSON**. Import replaces the current saved state (the disk file when using the local server, otherwise the browser copy).
+Open **Settings** in the app → **Export JSON** / **Import JSON**. Import replaces the current saved state (the disk file when using the local server, otherwise the browser copy). For a **full** local backup including time tracking, also copy **`data/time-tracking.db`**.
+
+## Change log (high level)
+
+See **`CHAT_HISTORY.md`** in this repo for merge notes and decisions (not a substitute for `git log`).
 
 ## Tech stack
 
