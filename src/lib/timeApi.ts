@@ -1,3 +1,5 @@
+import { OTHERS_LANE_ID } from '@/lib/timeLane'
+
 export type TimeProject = {
   id: number
   name: string
@@ -5,6 +7,24 @@ export type TimeProject = {
   laneId: string
   created_at: string
   updated_at: string
+}
+
+/** SQLite / JSON may expose `lane_id`; missing lane must not hide projects in pickers. */
+function normalizeTimeProject(raw: Record<string, unknown>): TimeProject {
+  const id = Number(raw.id)
+  const name = String(raw.name ?? '')
+  const laneRaw = raw.laneId ?? raw.lane_id
+  const laneId =
+    typeof laneRaw === 'string' && laneRaw.trim()
+      ? laneRaw.trim()
+      : OTHERS_LANE_ID
+  return {
+    id: Number.isFinite(id) ? id : 0,
+    name,
+    laneId,
+    created_at: String(raw.created_at ?? ''),
+    updated_at: String(raw.updated_at ?? ''),
+  }
 }
 
 export type TimeTask = {
@@ -85,10 +105,11 @@ export async function timeApiReachable(): Promise<boolean> {
 }
 
 export async function fetchProjects(): Promise<TimeProject[]> {
-  const j = await jsonRes<{ projects: TimeProject[] }>(
+  const j = await jsonRes<{ projects: Record<string, unknown>[] }>(
     await fetch('/api/time/projects', { cache: 'no-store' }),
   )
-  return j.projects ?? []
+  const list = j.projects ?? []
+  return list.map((row) => normalizeTimeProject(row))
 }
 
 export async function createProject(name: string, laneId: string): Promise<TimeProject> {
@@ -99,7 +120,7 @@ export async function createProject(name: string, laneId: string): Promise<TimeP
       body: JSON.stringify({ name, laneId }),
     }),
   )
-  return j.project
+  return normalizeTimeProject(j.project as Record<string, unknown>)
 }
 
 export async function updateProject(
@@ -114,7 +135,7 @@ export async function updateProject(
       body: JSON.stringify({ name, ...(laneId !== undefined ? { laneId } : {}) }),
     }),
   )
-  return j.project
+  return normalizeTimeProject(j.project as Record<string, unknown>)
 }
 
 export async function deleteProject(id: number): Promise<void> {

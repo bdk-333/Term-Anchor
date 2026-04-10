@@ -24,14 +24,20 @@ import {
 function TaskProjectSelect({
   value,
   onChange,
-  projectGroups,
+  projects,
+  categories,
   compact,
 }: {
   value: string
   onChange: (projectId: string) => void
-  projectGroups: Array<{ key: string; label: string; projects: TimeProject[] }>
+  projects: TimeProject[]
+  categories: ReadonlyArray<{ id: string; label: string }>
   compact?: boolean
 }) {
+  const sorted = useMemo(
+    () => [...projects].sort((a, b) => a.name.localeCompare(b.name)),
+    [projects],
+  )
   return (
     <select
       aria-label="Project for time task"
@@ -40,14 +46,10 @@ function TaskProjectSelect({
       className={`gs-native-select gs-native-select--plain ${compact ? 'w-full' : 'sm:w-52 sm:min-w-[12rem]'}`}
     >
       <option value="">No project (Others lane)</option>
-      {projectGroups.map((g) => (
-        <optgroup key={g.key} label={g.label}>
-          {g.projects.map((p) => (
-            <option key={p.id} value={String(p.id)}>
-              {p.name}
-            </option>
-          ))}
-        </optgroup>
+      {sorted.map((p) => (
+        <option key={p.id} value={String(p.id)}>
+          {laneLabelForId(p.laneId, categories)} · {p.name}
+        </option>
       ))}
     </select>
   )
@@ -99,20 +101,6 @@ export function DashboardTimerSections() {
     const items = state.tasksByDay[todayKey]?.items ?? []
     return items.find((t) => t.timeTaskId === current.taskId) ?? null
   }, [current, state.tasksByDay, todayKey])
-
-  const projectGroups = useMemo(() => {
-    const cats = state.taskCategories
-    const groups: Array<{ key: string; label: string; projects: TimeProject[] }> = []
-    for (const c of cats) {
-      const list = projects.filter((p) => p.laneId === c.id).sort((a, b) => a.name.localeCompare(b.name))
-      if (list.length) groups.push({ key: c.id, label: c.label, projects: list })
-    }
-    const others = projects
-      .filter((p) => p.laneId === OTHERS_LANE_ID)
-      .sort((a, b) => a.name.localeCompare(b.name))
-    if (others.length) groups.push({ key: 'others', label: 'Others', projects: others })
-    return groups
-  }, [projects, state.taskCategories])
 
   const laneOptions = useMemo(() => {
     const opts = state.taskCategories.map((c) => ({ id: c.id, label: c.label }))
@@ -340,7 +328,8 @@ export function DashboardTimerSections() {
                 <TaskProjectSelect
                   key={`tp-${t.id}-${t.projectId ?? 'none'}-${t.updated_at}`}
                   value={t.projectId == null ? '' : String(t.projectId)}
-                  projectGroups={projectGroups}
+                  projects={projects}
+                  categories={state.taskCategories}
                   compact
                   onChange={(v) => {
                     const pid = v === '' ? null : Number(v)
@@ -380,7 +369,8 @@ export function DashboardTimerSections() {
               <TaskProjectSelect
                 value={newTaskProjectId}
                 onChange={setNewTaskProjectId}
-                projectGroups={projectGroups}
+                projects={projects}
+                categories={state.taskCategories}
               />
               <button
                 type="button"
