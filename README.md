@@ -1,6 +1,6 @@
 # Term Anchor
 
-A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, weekly planner with drag-and-drop, habits, streaks, **sectioned daily log** (Cornell / outline / boxed notes, attachments), and **integrated time tracking** (lanes → projects → tasks, timer, today’s totals).
+A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, **month planner** on Week (lane-colored day tiles, day-detail modal), habits, streaks, a **contribution-style streak heatmap** on Today, **sectioned daily log** (Cornell / outline / boxed notes, attachments), and **integrated time tracking** (lanes → projects → tasks, timer, today’s totals).
 
 ## Where your data lives
 
@@ -46,6 +46,14 @@ On **Today** (home), use **Start timer** on a lane task or open the **Time track
 
 Requires **Node 22.5+** (for `node:sqlite`). No extra npm native modules.
 
+## Week — month planner
+
+The **Week** tab shows a **Monday-start month calendar** for the month you’re viewing (prev / next / Today). Each day shows small **lane-colored bars** for tasks that day; **today** and the **week that contains today** are highlighted. **Tap a day** to open a **modal**: full task list, optional planned times, drag tasks between days, and add tasks with lane + time. **Week intention** applies to the week that contains the **1st** of the visible calendar month. **Before** lists saved days; **Beyond** adds a horizontal strip of days **after** that month’s grid (same task controls).
+
+## Today — streak heatmap
+
+Under the fire **streak** count and 7-day “saved” pips, a **five-month contribution-style grid** shows **tasks marked done** per day on an **orange** intensity scale (**0–5**, where **5** means five or more). Blocks are **separate cards** per calendar month: **two months before**, **current month (center)**, **two months after** (Sunday-first columns within each block, like a compact GitHub / LeetCode graph). Padding days outside each labeled month appear as neutral tiles.
+
 ## Daily log and notes (Today)
 
 The **daily log** supports multiple sections, drag reorder, and per-section **note mode**: **Cornell**, **outline**, or **boxed**. You can attach files where the UI allows. Layout is tuned for wider reading and editing on large screens.
@@ -60,7 +68,7 @@ See **`CHAT_HISTORY.md`** in this repo for merge notes and decisions (not a subs
 
 ## Tech stack
 
-Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit. Local APIs: file-backed state + **`node:sqlite`** for time tracking.
+Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit. Local APIs: file-backed state + **`node:sqlite`** for time tracking. The main content column uses **`gs-container`** (wider on large screens) so the month planner and heatmap have enough horizontal room.
 
 ## Roadmap (v1.1)
 

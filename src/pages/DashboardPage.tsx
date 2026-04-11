@@ -18,6 +18,7 @@ import { TaskPlannedTimeInline } from '@/components/task/TaskPlannedTimeInline'
 import { IntentSectionsEditor } from '@/components/IntentSectionsEditor'
 import { LogSectionsEditor } from '@/components/LogSectionsEditor'
 import { GlassStatCard } from '@/components/GlassStatCard'
+import { StreakContributionHeatmap } from '@/components/StreakContributionHeatmap'
 import { useAppState } from '@/context/AppStateContext'
 import { useTimeTracker } from '@/context/TimeTrackerContext'
 import { MIN_LOG_WORDS_FOR_SAVE, canSaveToday, dailyLogMeetsSaveRule } from '@/lib/daySections'
@@ -467,27 +468,30 @@ export function DashboardPage() {
           </div>
 
           <section
-            className="gs-glass-streak flex flex-wrap items-center gap-4 sm:gap-5 p-4 sm:p-5"
+            className="gs-glass-streak flex flex-col gap-4 sm:gap-5 p-4 sm:p-5"
             aria-label="Streak"
           >
-            <span className="gs-fire-emoji select-none shrink-0" title="Streak" aria-hidden="true">
-              🔥
-            </span>
-            <div className="flex-1 min-w-[140px]">
-              <p className="font-mono text-2xl sm:text-[1.75rem] font-bold text-gs-accent2 drop-shadow-[0_0_14px_rgba(255,107,53,0.45)]">
-                {streak}
-              </p>
-              <p className="font-mono text-[11px] text-gs-muted mt-1">{streakDesc}</p>
+            <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+              <span className="gs-fire-emoji select-none shrink-0" title="Streak" aria-hidden="true">
+                🔥
+              </span>
+              <div className="flex-1 min-w-[140px]">
+                <p className="font-mono text-2xl sm:text-[1.75rem] font-bold text-gs-accent2 drop-shadow-[0_0_14px_rgba(255,107,53,0.45)]">
+                  {streak}
+                </p>
+                <p className="font-mono text-[11px] text-gs-muted mt-1">{streakDesc}</p>
+              </div>
+              <div className="flex gap-1.5 w-full sm:w-auto sm:shrink-0 justify-between sm:justify-end">
+                {pips.map((hot, i) => (
+                  <div
+                    key={i}
+                    className={`gs-streak-pip ${hot ? 'gs-streak-pip--hot' : 'gs-streak-pip--off'}`}
+                    title={hot ? 'Day saved' : 'Not marked'}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="flex gap-1.5 w-full sm:w-auto sm:shrink-0 justify-between sm:justify-end">
-              {pips.map((hot, i) => (
-                <div
-                  key={i}
-                  className={`gs-streak-pip ${hot ? 'gs-streak-pip--hot' : 'gs-streak-pip--off'}`}
-                  title={hot ? 'Day saved' : 'Not marked'}
-                />
-              ))}
-            </div>
+            <StreakContributionHeatmap state={state} todayKey={todayKey} />
           </section>
         </div>
 
