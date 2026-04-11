@@ -10,9 +10,7 @@ CREATE TABLE IF NOT EXISTS projects (
   CHECK (length(name) > 0 AND length(name) <= 100)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_lane_name_active
-ON projects(lane_id, lower(name))
-WHERE deleted_at IS NULL;
+-- Per-lane unique index is created in db.mjs after migrating legacy DBs that lack lane_id.
 
 CREATE TABLE IF NOT EXISTS tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

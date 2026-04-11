@@ -17,18 +17,27 @@ db.exec('PRAGMA foreign_keys = ON')
 const schemaPath = path.join(__dirname, 'schema.sql')
 db.exec(fs.readFileSync(schemaPath, 'utf8'))
 
-/** Older DBs: add lane_id on projects and per-lane unique names. */
-function migrateProjectsLaneId() {
+/**
+ * Legacy DBs may have `projects` without lane_id. Schema must not CREATE INDEX on lane_id
+ * before this runs (see schema.sql). New DBs get lane_id from CREATE TABLE.
+ */
+function ensureProjectsLaneIdAndIndex() {
+  const row = db
+    .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='projects'`)
+    .get()
+  if (!row) return
+
   const info = db.prepare(`PRAGMA table_info(projects)`).all()
   const hasLane = info.some((c) => c.name === 'lane_id')
-  if (hasLane) return
-  db.exec(`ALTER TABLE projects ADD COLUMN lane_id TEXT NOT NULL DEFAULT '__others__'`)
-  db.exec(`DROP INDEX IF EXISTS idx_projects_name_active`)
+  if (!hasLane) {
+    db.exec(`ALTER TABLE projects ADD COLUMN lane_id TEXT NOT NULL DEFAULT '__others__'`)
+    db.exec(`DROP INDEX IF EXISTS idx_projects_name_active`)
+  }
   db.exec(
     `CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_lane_name_active ON projects(lane_id, lower(name)) WHERE deleted_at IS NULL`,
   )
 }
-migrateProjectsLaneId()
+ensureProjectsLaneIdAndIndex()
 
 /**
  * @param {() => void} fn
