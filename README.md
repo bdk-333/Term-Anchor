@@ -152,7 +152,7 @@ Customize everything without touching code.
 | **Database** | SQLite via sql.js (WebAssembly) |
 | **Server** | Node.js (custom, no framework) |
 | **Tests** | Vitest |
-| **Built with** | Cursor + Claude Sonnet |
+| **Built with** | Cursor + Composer 2 |
 
 ---
 
