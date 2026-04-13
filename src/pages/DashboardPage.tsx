@@ -35,12 +35,12 @@ import { streakCount, streakPips } from '@/lib/streak'
 import { deleteTask } from '@/lib/timeApi'
 
 const LANE_TITLE = [
-  'text-gs-lane-0',
-  'text-gs-lane-1',
-  'text-gs-lane-2',
-  'text-gs-lane-3',
+  'text-ta-lane-0',
+  'text-ta-lane-1',
+  'text-ta-lane-2',
+  'text-ta-lane-3',
 ] as const
-const LANE_DOT = ['bg-gs-lane-0', 'bg-gs-lane-1', 'bg-gs-lane-2', 'bg-gs-lane-3'] as const
+const LANE_DOT = ['bg-ta-lane-0', 'bg-ta-lane-1', 'bg-ta-lane-2', 'bg-ta-lane-3'] as const
 
 function firstSlotForEmptyLane(items: TaskItem[], lane: string, categoryOrder: string[]): number {
   const ti = categoryOrder.indexOf(lane)
@@ -88,7 +88,7 @@ function SortableDashboardTask({
       className={[
         'rounded-lg border px-2 py-2 group',
         tracking
-          ? 'border-gs-accent/45 bg-gs-accent/[0.07] shadow-[0_0_20px_-8px_rgba(232,255,71,0.2)]'
+          ? 'border-ta-accent/45 bg-ta-accent/[0.07] shadow-[0_0_20px_-8px_rgba(232,255,71,0.2)]'
           : mismatch
             ? 'border-amber-400/55 bg-amber-500/[0.07] shadow-[0_0_20px_-8px_rgba(251,191,36,0.25)]'
             : 'border-white/[0.06] bg-black/15',
@@ -97,7 +97,7 @@ function SortableDashboardTask({
       <div className="flex items-start gap-2">
         <button
           type="button"
-          className="cursor-grab active:cursor-grabbing font-mono text-gs-muted touch-none px-0.5 shrink-0 mt-0.5"
+          className="cursor-grab active:cursor-grabbing font-mono text-ta-muted touch-none px-0.5 shrink-0 mt-0.5"
           {...attributes}
           {...listeners}
           aria-label="Drag to reorder or move lane"
@@ -109,24 +109,24 @@ function SortableDashboardTask({
           onClick={() => onToggle(task.id)}
           className={`mt-0.5 w-4 h-4 shrink-0 rounded border font-mono text-[10px] leading-4 ${
             task.done
-              ? 'bg-gs-success border-gs-success text-gs-bg'
-              : 'border-gs-muted bg-gs-surface-muted/50'
+              ? 'bg-ta-success border-ta-success text-ta-bg'
+              : 'border-ta-muted bg-ta-surface-muted/50'
           }`}
           aria-label={task.done ? 'Mark incomplete' : 'Mark done'}
         >
           {task.done ? '✓' : ''}
         </button>
-        <div className={`flex-1 min-w-0 ${task.done ? 'text-gs-muted' : ''}`}>
+        <div className={`flex-1 min-w-0 ${task.done ? 'text-ta-muted' : ''}`}>
           {plannedLabel ? (
             <p className="font-mono text-[10px] text-sky-300/90 leading-tight mb-0.5">{plannedLabel}</p>
           ) : null}
           <span
-            className={`text-sm block leading-snug ${task.done ? 'line-through' : 'text-gs-text'}`}
+            className={`text-sm block leading-snug ${task.done ? 'line-through' : 'text-ta-text'}`}
           >
             {task.text}
           </span>
           {task.done && task.completedAt ? (
-            <p className="font-mono text-[9px] text-gs-muted/90 mt-1">
+            <p className="font-mono text-[9px] text-ta-muted/90 mt-1">
               Done at{' '}
               {new Date(task.completedAt).toLocaleTimeString(undefined, {
                 hour: 'numeric',
@@ -142,13 +142,13 @@ function SortableDashboardTask({
           ) : null}
           <TaskPlannedTimeInline task={task} onPatch={(patch) => onPatch(task.id, patch)} />
           {tracking ? (
-            <p className="font-mono text-[9px] text-gs-accent mt-2">Tracking now</p>
+            <p className="font-mono text-[9px] text-ta-accent mt-2">Tracking now</p>
           ) : null}
           {!task.done && timeApiOk === true && !tracking ? (
             <div className="mt-2">
               <button
                 type="button"
-                className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md border border-gs-accent/45 text-gs-accent bg-white/[0.04] hover:bg-gs-accent/10"
+                className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md border border-ta-accent/45 text-ta-accent bg-white/[0.04] hover:bg-ta-accent/10"
                 onClick={() => onStartTimer(task.id)}
               >
                 Start timer
@@ -156,15 +156,15 @@ function SortableDashboardTask({
             </div>
           ) : null}
           {!task.done && timeApiOk === false ? (
-            <p className="font-mono text-[9px] text-gs-muted/90 mt-2 leading-snug">
+            <p className="font-mono text-[9px] text-ta-muted/90 mt-2 leading-snug">
               Start timer: run the app with the local server so{' '}
-              <span className="font-mono text-gs-text/80">/api/time</span> is available.
+              <span className="font-mono text-ta-text/80">/api/time</span> is available.
             </p>
           ) : null}
         </div>
         <button
           type="button"
-          className="opacity-0 group-hover:opacity-100 text-gs-muted hover:text-gs-danger font-mono text-xs shrink-0"
+          className="opacity-0 group-hover:opacity-100 text-ta-muted hover:text-ta-danger font-mono text-xs shrink-0"
           onClick={() => onRemove(task.id)}
           aria-label="Remove task"
         >
@@ -423,9 +423,9 @@ export function DashboardPage() {
     <div>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 lg:gap-12 lg:items-start">
         <div className="space-y-10">
-          <header className="gs-glass-panel gs-glass-panel--tilt-none flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 p-5 sm:p-6 mb-2">
+          <header className="ta-glass-panel ta-glass-panel--tilt-none flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 p-5 sm:p-6 mb-2">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-2">
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ta-muted mb-2">
                 {today.toLocaleDateString(undefined, {
                   weekday: 'long',
                   year: 'numeric',
@@ -433,59 +433,59 @@ export function DashboardPage() {
                   day: 'numeric',
                 })}
               </p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gs-text">
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-ta-text">
                 {greeting}
               </h2>
               {profile.degreeFocus && (
-                <p className="font-mono text-xs text-gs-accent2/90 mt-3 leading-relaxed max-w-md">
+                <p className="font-mono text-xs text-ta-accent2/90 mt-3 leading-relaxed max-w-md">
                   {profile.degreeFocus}
                 </p>
               )}
             </div>
             <div className="flex flex-col items-start sm:items-end gap-3 shrink-0 w-full sm:w-auto">
               <div className="text-left sm:text-right w-full sm:w-auto">
-                <span className="font-mono text-4xl sm:text-5xl font-bold text-gs-accent leading-none">
+                <span className="font-mono text-4xl sm:text-5xl font-bold text-ta-accent leading-none">
                   {daysLeftDisplay ?? '—'}
                 </span>
-                <p className="font-mono text-[11px] uppercase tracking-wider text-gs-muted mt-2">
+                <p className="font-mono text-[11px] uppercase tracking-wider text-ta-muted mt-2">
                   days to {profile.anchorLabel || 'anchor'}
                 </p>
                 <div className="mt-4 h-1.5 w-40 max-w-full rounded-full bg-black/30 sm:ml-auto sm:mr-0 overflow-hidden ring-1 ring-white/10">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-gs-accent to-[#c8e830] transition-all duration-500 shadow-[0_0_12px_rgba(232,255,71,0.45)]"
+                    className="h-full rounded-full bg-gradient-to-r from-ta-accent to-[#c8e830] transition-all duration-500 shadow-[0_0_12px_rgba(232,255,71,0.45)]"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <p className="font-mono text-[10px] text-gs-muted mt-1.5">Term progress</p>
+                <p className="font-mono text-[10px] text-ta-muted mt-1.5">Term progress</p>
               </div>
             </div>
           </header>
 
-          <div className="gs-stat-grid grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="ta-stat-grid grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             <GlassStatCard label="Days left" value={daysLeftDisplay ?? '—'} variant="lime" />
             <GlassStatCard label="Tasks done" value={tasksDone} variant="white" />
             <GlassStatCard label="Streak" value={streak} variant="red" />
           </div>
 
           <section
-            className="gs-glass-streak flex flex-col gap-4 sm:gap-5 p-4 sm:p-5"
+            className="ta-glass-streak flex flex-col gap-4 sm:gap-5 p-4 sm:p-5"
             aria-label="Streak"
           >
             <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-              <span className="gs-fire-emoji select-none shrink-0" title="Streak" aria-hidden="true">
+              <span className="ta-fire-emoji select-none shrink-0" title="Streak" aria-hidden="true">
                 🔥
               </span>
               <div className="flex-1 min-w-[140px]">
-                <p className="font-mono text-2xl sm:text-[1.75rem] font-bold text-gs-accent2 drop-shadow-[0_0_14px_rgba(255,107,53,0.45)]">
+                <p className="font-mono text-2xl sm:text-[1.75rem] font-bold text-ta-accent2 drop-shadow-[0_0_14px_rgba(255,107,53,0.45)]">
                   {streak}
                 </p>
-                <p className="font-mono text-[11px] text-gs-muted mt-1">{streakDesc}</p>
+                <p className="font-mono text-[11px] text-ta-muted mt-1">{streakDesc}</p>
               </div>
               <div className="flex gap-1.5 w-full sm:w-auto sm:shrink-0 justify-between sm:justify-end">
                 {pips.map((hot, i) => (
                   <div
                     key={i}
-                    className={`gs-streak-pip ${hot ? 'gs-streak-pip--hot' : 'gs-streak-pip--off'}`}
+                    className={`ta-streak-pip ${hot ? 'ta-streak-pip--hot' : 'ta-streak-pip--off'}`}
                     title={hot ? 'Day saved' : 'Not marked'}
                   />
                 ))}
@@ -495,9 +495,9 @@ export function DashboardPage() {
           </section>
         </div>
 
-        <aside className="lg:border-l border-gs-border/80 lg:pl-8 space-y-5">
-          <div className="gs-glass-panel gs-glass-panel--tilt-none p-5">
-            <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-4">
+        <aside className="lg:border-l border-ta-border/80 lg:pl-8 space-y-5">
+          <div className="ta-glass-panel ta-glass-panel--tilt-none p-5">
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-ta-muted mb-4">
               Habits
             </h3>
             <ul className="space-y-3">
@@ -505,15 +505,15 @@ export function DashboardPage() {
                 const checked = !!(state.habitChecks[todayKey]?.[h.id])
                 return (
                   <li key={h.id}>
-                    <label className="gs-habit-label group">
+                    <label className="ta-habit-label group">
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleHabit(h.id)}
                       />
-                      <span className="gs-habit-box" aria-hidden />
+                      <span className="ta-habit-box" aria-hidden />
                       <span
-                        className={`text-sm leading-snug flex-1 ${checked ? 'text-gs-muted line-through' : 'text-gs-text'}`}
+                        className={`text-sm leading-snug flex-1 ${checked ? 'text-ta-muted line-through' : 'text-ta-text'}`}
                       >
                         {h.label}
                       </span>
@@ -522,7 +522,7 @@ export function DashboardPage() {
                 )
               })}
             </ul>
-            <p className="font-mono text-[10px] text-gs-muted leading-relaxed mt-5">
+            <p className="font-mono text-[10px] text-ta-muted leading-relaxed mt-5">
               Edit labels in Settings. Lightweight reminders only.
             </p>
           </div>
@@ -531,26 +531,26 @@ export function DashboardPage() {
 
       <div className="mt-10 lg:mt-12 space-y-10 w-full max-w-none xl:max-w-[min(100%,1420px)] mx-auto">
         <section>
-          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-1">
+          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-ta-muted mb-1">
             Time tracking
           </h3>
-          <p className="font-mono text-[10px] text-gs-muted/90 mb-4 max-w-2xl leading-relaxed">
+          <p className="font-mono text-[10px] text-ta-muted/90 mb-4 max-w-2xl leading-relaxed">
             Pause, resume, and stop the session here. Tracked minutes and ad-hoc database tasks are below.
-            Week can send you back with <span className="text-gs-text/90">Start timer</span> on today&apos;s
+            Week can send you back with <span className="text-ta-text/90">Start timer</span> on today&apos;s
             column.
           </p>
           <DashboardTimerSections />
         </section>
 
         <section>
-          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-1">
+          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-ta-muted mb-1">
             Task lanes
           </h3>
-          <p className="font-mono text-[10px] text-gs-muted/90 mb-4 max-w-2xl leading-relaxed">
-            Set optional <span className="text-gs-text/90">When</span> times on each task. Drag{' '}
-            <span className="text-gs-text/85">⋮⋮</span> to reorder within a lane or drop onto another lane.
+          <p className="font-mono text-[10px] text-ta-muted/90 mb-4 max-w-2xl leading-relaxed">
+            Set optional <span className="text-ta-text/90">When</span> times on each task. Drag{' '}
+            <span className="text-ta-text/85">⋮⋮</span> to reorder within a lane or drop onto another lane.
             Marking done checks the clock against your plan (±5 minutes). Future days with times: use{' '}
-            <span className="text-gs-accent/90">Week</span>. Use <span className="text-gs-accent/90">Start timer</span>{' '}
+            <span className="text-ta-accent/90">Week</span>. Use <span className="text-ta-accent/90">Start timer</span>{' '}
             on a row when the local time API is on (see Time tracking above).
           </p>
           <DndContext
@@ -567,7 +567,7 @@ export function DashboardPage() {
                 return (
                   <div
                     key={cat.id}
-                    className="gs-glass-panel p-4 flex flex-col min-h-[200px]"
+                    className="ta-glass-panel p-4 flex flex-col min-h-[200px]"
                   >
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <h4
@@ -634,30 +634,30 @@ export function DashboardPage() {
                       <input
                         name="task"
                         placeholder="Task…"
-                        className="gs-glass-input flex-1 min-w-[8rem] px-2 py-2 font-mono text-xs text-gs-text placeholder:text-gs-muted/80 placeholder:font-sans"
+                        className="ta-glass-input flex-1 min-w-[8rem] px-2 py-2 font-mono text-xs text-ta-text placeholder:text-ta-muted/80 placeholder:font-sans"
                       />
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-[9px] text-gs-muted uppercase">When (optional)</span>
+                      <span className="font-mono text-[9px] text-ta-muted uppercase">When (optional)</span>
                       <input
                         type="time"
                         name="planStart"
                         aria-label="Planned start for new task"
-                        className="gs-glass-input w-[7rem] px-1.5 py-1 font-mono text-[10px] text-gs-text"
+                        className="ta-glass-input w-[7rem] px-1.5 py-1 font-mono text-[10px] text-ta-text"
                       />
-                      <label className="flex items-center gap-1 font-mono text-[9px] text-gs-muted">
-                        <input type="checkbox" name="planHasEnd" className="rounded border-gs-border" />
+                      <label className="flex items-center gap-1 font-mono text-[9px] text-ta-muted">
+                        <input type="checkbox" name="planHasEnd" className="rounded border-ta-border" />
                         End
                       </label>
                       <input
                         type="time"
                         name="planEnd"
                         aria-label="Planned end for new task"
-                        className="gs-glass-input w-[7rem] px-1.5 py-1 font-mono text-[10px] text-gs-text"
+                        className="ta-glass-input w-[7rem] px-1.5 py-1 font-mono text-[10px] text-ta-text"
                       />
                       <button
                         type="submit"
-                        className="font-mono text-xs uppercase px-3 py-2 border border-gs-accent/50 text-gs-accent rounded-md bg-white/[0.04] hover:bg-gs-accent/10 hover:shadow-[0_0_16px_-4px_rgba(232,255,71,0.4)] transition-all ml-auto"
+                        className="font-mono text-xs uppercase px-3 py-2 border border-ta-accent/50 text-ta-accent rounded-md bg-white/[0.04] hover:bg-ta-accent/10 hover:shadow-[0_0_16px_-4px_rgba(232,255,71,0.4)] transition-all ml-auto"
                       >
                         Add
                       </button>
@@ -669,7 +669,7 @@ export function DashboardPage() {
             </div>
             <DragOverlay>
               {activeDragTask ? (
-                <div className="rounded-lg border border-gs-accent/50 bg-gs-surface/95 px-3 py-2 text-sm text-gs-text shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-[280px]">
+                <div className="rounded-lg border border-ta-accent/50 bg-ta-surface/95 px-3 py-2 text-sm text-ta-text shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-[280px]">
                   {activeDragTask.text}
                 </div>
               ) : null}
@@ -696,13 +696,13 @@ export function DashboardPage() {
               sideBySide={logSideBySide}
               onSideBySideChange={setLogSideBySide}
             />
-            <p className="font-mono text-[10px] text-gs-muted leading-relaxed">
+            <p className="font-mono text-[10px] text-ta-muted leading-relaxed">
               To save today: mark at least one task done, and complete one log section — section title plus
               method-specific content (Default: {MIN_LOG_WORDS_FOR_SAVE}+ words in details; Cornell: cues/notes
               + {MIN_LOG_WORDS_FOR_SAVE}+ words total; Outline: top items with enough text; Boxed: titled
               boxes with enough text). Images and links attach below each section. Habits optional.
               {!logQualifies && logSections.length > 0 ? (
-                <span className="block mt-1 text-gs-accent2/90">
+                <span className="block mt-1 text-ta-accent2/90">
                   Still need a qualifying section (see checklist below when you try Save).
                 </span>
               ) : null}
@@ -716,20 +716,20 @@ export function DashboardPage() {
                   type="button"
                   onClick={saveDay}
                   disabled={!saveReadiness.ok}
-                  className="gs-glass-btn-primary font-mono text-sm uppercase tracking-wider px-6 py-3 text-white disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none"
+                  className="ta-glass-btn-primary font-mono text-sm uppercase tracking-wider px-6 py-3 text-white disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none"
                 >
                   Save today
                 </button>
               ) : (
-                <p className="font-mono text-xs text-gs-success leading-relaxed max-w-xl">
+                <p className="font-mono text-xs text-ta-success leading-relaxed max-w-xl">
                   This day is saved. You can keep editing intentions, daily log, and tasks — everything still
-                  syncs automatically. Open <strong className="text-gs-accent">Week → Before</strong> anytime
+                  syncs automatically. Open <strong className="text-ta-accent">Week → Before</strong> anytime
                   to view this day as a snapshot.
                 </p>
               )}
             </div>
             {!dayMarked && !saveReadiness.ok && (
-              <ul className="font-mono text-xs text-gs-accent2/95 space-y-1 list-disc pl-5">
+              <ul className="font-mono text-xs text-ta-accent2/95 space-y-1 list-disc pl-5">
                 {saveReadiness.reasons.map((r) => (
                   <li key={r}>{r}</li>
                 ))}

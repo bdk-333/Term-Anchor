@@ -94,12 +94,12 @@ function BoxCard({
           onChange={(e) => onPatch(box.id, { title: e.target.value })}
           onFocus={() => setFocusId(box.id)}
           placeholder="Box title (required)"
-          className="gs-glass-input flex-1 px-2 py-1.5 text-sm font-medium text-gs-text"
+          className="ta-glass-input flex-1 px-2 py-1.5 text-sm font-medium text-ta-text"
         />
         <button
           type="button"
           onClick={() => onRemove(box.id)}
-          className="font-mono text-[10px] text-gs-danger shrink-0"
+          className="font-mono text-[10px] text-ta-danger shrink-0"
         >
           ×
         </button>
@@ -110,7 +110,7 @@ function BoxCard({
         onFocus={() => setFocusId(box.id)}
         placeholder="Notes inside this box…"
         rows={3}
-        className="gs-glass-input w-full px-2 py-1.5 text-sm text-gs-text resize-y font-sans"
+        className="ta-glass-input w-full px-2 py-1.5 text-sm text-ta-text resize-y font-sans"
       />
       <div className="flex flex-wrap gap-2">
         <button
@@ -178,10 +178,10 @@ export function BoxedLogEditor({ root, onChangeRoot }: Props) {
         >
           + Level-1 box
         </button>
-        <span className="font-mono text-[10px] text-gs-muted">Click a box to focus; others dim slightly.</span>
+        <span className="font-mono text-[10px] text-ta-muted">Click a box to focus; others dim slightly.</span>
       </div>
       {root.length === 0 ? (
-        <p className="text-xs text-gs-muted">Add a top-level box. Each box needs a title.</p>
+        <p className="text-xs text-ta-muted">Add a top-level box. Each box needs a title.</p>
       ) : (
         <div className="space-y-3">
           {root.map((b) => (

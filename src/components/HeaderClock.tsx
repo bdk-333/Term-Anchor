@@ -25,10 +25,10 @@ export function HeaderClock({ variant = 'header' }: { variant?: Variant }) {
   })
 
   const clockBlock = (
-    <div className="gs-header-clock-inner text-right">
-      <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-gs-muted/80 mb-0.5">Local</p>
+    <div className="ta-header-clock-inner text-right">
+      <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-ta-muted/80 mb-0.5">Local</p>
       <p
-        className="gs-header-clock-digits gs-header-clock-hm tabular-nums tracking-[0.02em] leading-none"
+        className="ta-header-clock-digits ta-header-clock-hm tabular-nums tracking-[0.02em] leading-none"
         title={t.toLocaleString()}
       >
         {clockStr}
@@ -39,14 +39,14 @@ export function HeaderClock({ variant = 'header' }: { variant?: Variant }) {
   const trackingBlock =
     current != null ? (
       <div className="min-w-0 flex-1 sm:max-w-[min(100%,20rem)] text-left sm:text-right order-2 sm:order-1">
-        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-gs-accent/90 mb-0.5">Tracking</p>
-        <p className="text-sm font-semibold text-gs-text leading-snug truncate" title={current.taskName}>
+        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-ta-accent/90 mb-0.5">Tracking</p>
+        <p className="text-sm font-semibold text-ta-text leading-snug truncate" title={current.taskName}>
           {current.taskName}
           {current.projectName ? (
-            <span className="text-gs-muted font-normal"> · {current.projectName}</span>
+            <span className="text-ta-muted font-normal"> · {current.projectName}</span>
           ) : null}
         </p>
-        <p className="font-mono text-[11px] text-gs-accent mt-0.5">
+        <p className="font-mono text-[11px] text-ta-accent mt-0.5">
           {formatMinutes(current.elapsedMinutes)} · {current.state === 'running' ? 'running' : 'paused'}
         </p>
       </div>

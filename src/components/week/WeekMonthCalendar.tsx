@@ -50,11 +50,11 @@ function MonthDayCell({
         aria-label={aria}
         className={[
           'w-full h-full min-h-[5.5rem] sm:min-h-[6.25rem] flex flex-col items-stretch rounded-xl border px-1.5 pt-1.5 pb-1.5 text-left transition-all',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gs-accent/50',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ta-accent/50',
           inMonth ? 'border-white/[0.1] bg-black/20' : 'border-transparent bg-transparent opacity-45',
           isToday ? 'ring-1 ring-white/35 shadow-[0_0_20px_-8px_rgba(255,255,255,0.2)]' : '',
-          isSelected ? 'ring-2 ring-gs-accent/45 border-gs-accent/30' : '',
-          isOver ? 'border-gs-accent/50 bg-gs-accent/[0.07]' : 'hover:border-white/20 hover:bg-white/[0.04]',
+          isSelected ? 'ring-2 ring-ta-accent/45 border-ta-accent/30' : '',
+          isOver ? 'border-ta-accent/50 bg-ta-accent/[0.07]' : 'hover:border-white/20 hover:bg-white/[0.04]',
         ].join(' ')}
       >
         <div className="flex justify-center mb-0.5">
@@ -62,10 +62,10 @@ function MonthDayCell({
             className={[
               'inline-flex min-w-[1.65rem] h-7 items-center justify-center font-mono text-sm font-semibold tabular-nums',
               isToday
-                ? 'rounded-md bg-white text-gs-bg shadow-sm'
+                ? 'rounded-md bg-white text-ta-bg shadow-sm'
                 : inMonth
-                  ? 'text-gs-text'
-                  : 'text-gs-muted',
+                  ? 'text-ta-text'
+                  : 'text-ta-muted',
             ].join(' ')}
           >
             {d.getDate()}
@@ -81,7 +81,7 @@ function MonthDayCell({
             />
           ))}
           {overflow > 0 ? (
-            <p className="font-mono text-[8px] text-gs-muted text-center leading-none pt-0.5">+{overflow}</p>
+            <p className="font-mono text-[8px] text-ta-muted text-center leading-none pt-0.5">+{overflow}</p>
           ) : null}
         </div>
       </button>
@@ -120,14 +120,14 @@ export function WeekMonthCalendar({
   const shortTitle = format(viewMonth, 'MMM yyyy').toUpperCase()
 
   return (
-    <section className="gs-glass-panel gs-glass-panel--tilt-none overflow-hidden border border-white/[0.08]">
+    <section className="ta-glass-panel ta-glass-panel--tilt-none overflow-hidden border border-white/[0.08]">
       <div className="flex flex-wrap items-center justify-between gap-3 px-3 sm:px-4 py-3 border-b border-white/[0.08]">
-        <h3 className="font-mono text-lg sm:text-xl font-bold tracking-tight text-gs-text">{shortTitle}</h3>
+        <h3 className="font-mono text-lg sm:text-xl font-bold tracking-tight text-ta-text">{shortTitle}</h3>
         <div className="flex items-center gap-2 font-mono text-xs">
           <button
             type="button"
             onClick={onPrevMonth}
-            className="px-3 py-2 rounded-lg border border-white/12 text-gs-muted hover:text-gs-text hover:border-white/25 transition-colors"
+            className="px-3 py-2 rounded-lg border border-white/12 text-ta-muted hover:text-ta-text hover:border-white/25 transition-colors"
             aria-label="Previous month"
           >
             ←
@@ -135,14 +135,14 @@ export function WeekMonthCalendar({
           <button
             type="button"
             onClick={onThisMonth}
-            className="px-3 py-2 rounded-lg border border-white/12 text-gs-muted hover:text-gs-accent hover:border-gs-accent/35 transition-colors"
+            className="px-3 py-2 rounded-lg border border-white/12 text-ta-muted hover:text-ta-accent hover:border-ta-accent/35 transition-colors"
           >
             Today
           </button>
           <button
             type="button"
             onClick={onNextMonth}
-            className="px-3 py-2 rounded-lg border border-white/12 text-gs-muted hover:text-gs-text hover:border-white/25 transition-colors"
+            className="px-3 py-2 rounded-lg border border-white/12 text-ta-muted hover:text-ta-text hover:border-white/25 transition-colors"
             aria-label="Next month"
           >
             →
@@ -158,7 +158,7 @@ export function WeekMonthCalendar({
         {WEEKDAY_LETTERS.map((l, i) => (
           <div
             key={`${l}-${i}`}
-            className="text-center font-mono text-[10px] uppercase tracking-widest text-gs-muted py-1"
+            className="text-center font-mono text-[10px] uppercase tracking-widest text-ta-muted py-1"
           >
             {l}
           </div>
@@ -173,7 +173,7 @@ export function WeekMonthCalendar({
               key={wi}
               className={[
                 'grid grid-cols-7 gap-0.5 sm:gap-1 rounded-xl',
-                rowInThisWeek ? 'ring-1 ring-gs-accent/20 bg-gs-accent/[0.04]' : '',
+                rowInThisWeek ? 'ring-1 ring-ta-accent/20 bg-ta-accent/[0.04]' : '',
               ].join(' ')}
             >
               {row.map((dateKey) => {

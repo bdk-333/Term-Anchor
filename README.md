@@ -55,15 +55,21 @@ Static output is in **`dist/`**. The Node script **`scripts/term-anchor-server.m
 
 ## Screenshots
 
-There are no image assets in the repo by default. For docs or a store listing, capture locally:
+Add three images under **`screenshots/`** (repo root). Use these exact filenames so they match the README:
 
-| Suggested capture | What to show |
-| ----------------- | ------------ |
-| **Today** | Lanes, streak + heatmap, time section when API is up |
-| **Week** | Month grid with lane bars + day modal |
-| **Settings** | Export / import, anchor & term fields |
+| File | Page |
+| ---- | ---- |
+| **`screenshots/home.png`** | Today (home) — lanes, streak, heatmap, time |
+| **`screenshots/week.png`** | Week — month grid, lane bars |
+| **`screenshots/settings.png`** | Settings — backup, goals, lanes |
 
-Save PNGs under e.g. **`docs/screenshots/`** (create the folder if you use it); it is optional and not required to run the app.
+![Term Anchor — Today (home)](screenshots/home.png)
+
+![Term Anchor — Week](screenshots/week.png)
+
+![Term Anchor — Settings](screenshots/settings.png)
+
+*If the images are missing, GitHub may show a broken image until you add the files locally and push.*
 
 ## Time tracking on Today
 
@@ -95,7 +101,7 @@ See **`CHAT_HISTORY.md`** in this repo for merge notes and decisions (not a subs
 
 ## Tech stack
 
-Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit. Local APIs: file-backed state + **SQLite** (`sql.js` / WASM) for time tracking. The main content column uses **`gs-container`** (wider on large screens) so the month planner and heatmap have enough horizontal room. A React **error boundary** catches render failures and offers a reload path.
+Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit. Local APIs: file-backed state + **SQLite** (`sql.js` / WASM) for time tracking. The main content column uses **`ta-container`** (wider on large screens) so the month planner and heatmap have enough horizontal room. A React **error boundary** catches render failures and offers a reload path.
 
 ## Roadmap (v1.1)
 

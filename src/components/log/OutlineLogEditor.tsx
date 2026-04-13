@@ -77,7 +77,7 @@ function OutlineRow({
             value={node.title ?? ''}
             onChange={(e) => onUpdate(node.id, { title: e.target.value })}
             placeholder="Optional title"
-            className="gs-glass-input flex-1 min-w-[120px] px-2 py-1 text-xs text-gs-text font-sans"
+            className="ta-glass-input flex-1 min-w-[120px] px-2 py-1 text-xs text-ta-text font-sans"
           />
           <select
             value={node.childrenListType}
@@ -87,7 +87,7 @@ function OutlineRow({
               })
             }
             aria-label="List type for nested items"
-            className="gs-native-select text-xs max-w-[140px]"
+            className="ta-native-select text-xs max-w-[140px]"
           >
             <option value="unordered">Nested: bullets</option>
             <option value="ordered">Nested: numbered</option>
@@ -98,27 +98,27 @@ function OutlineRow({
           onChange={(e) => onUpdate(node.id, { body: e.target.value })}
           placeholder="Item text"
           rows={2}
-          className="gs-glass-input w-full px-2 py-1.5 text-sm text-gs-text resize-y font-sans"
+          className="ta-glass-input w-full px-2 py-1.5 text-sm text-ta-text resize-y font-sans"
         />
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => onAddSibling(node.id)}
-            className="font-mono text-[10px] uppercase text-gs-muted hover:text-gs-accent"
+            className="font-mono text-[10px] uppercase text-ta-muted hover:text-ta-accent"
           >
             + Sibling
           </button>
           <button
             type="button"
             onClick={() => onAddChild(node.id)}
-            className="font-mono text-[10px] uppercase text-gs-muted hover:text-gs-accent"
+            className="font-mono text-[10px] uppercase text-ta-muted hover:text-ta-accent"
           >
             + Nested
           </button>
           <button
             type="button"
             onClick={() => onRemove(node.id)}
-            className="font-mono text-[10px] uppercase text-gs-danger/80 hover:text-gs-danger ml-auto"
+            className="font-mono text-[10px] uppercase text-ta-danger/80 hover:text-ta-danger ml-auto"
           >
             Remove
           </button>
@@ -171,12 +171,12 @@ export function OutlineLogEditor({ topListType, onTopListType, root, onChangeRoo
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[10px] uppercase text-gs-muted">Top level</span>
+        <span className="font-mono text-[10px] uppercase text-ta-muted">Top level</span>
         <select
           value={topListType}
           onChange={(e) => onTopListType(e.target.value as 'ordered' | 'unordered')}
           aria-label="Top-level list type"
-          className="gs-native-select text-xs"
+          className="ta-native-select text-xs"
         >
           <option value="unordered">Bullets</option>
           <option value="ordered">Numbered</option>
@@ -184,13 +184,13 @@ export function OutlineLogEditor({ topListType, onTopListType, root, onChangeRoo
         <button
           type="button"
           onClick={() => onChangeRoot([...root, emptyOutlineNode()])}
-          className="font-mono text-[10px] uppercase px-2 py-1 rounded border border-white/15 text-gs-muted hover:border-gs-accent/40"
+          className="font-mono text-[10px] uppercase px-2 py-1 rounded border border-white/15 text-ta-muted hover:border-ta-accent/40"
         >
           + Top item
         </button>
       </div>
       {root.length === 0 ? (
-        <p className="text-xs text-gs-muted">Add a top-level outline item to begin.</p>
+        <p className="text-xs text-ta-muted">Add a top-level outline item to begin.</p>
       ) : (
         <ListTag className={topListType === 'ordered' ? 'list-decimal pl-5 space-y-2' : 'list-disc pl-5 space-y-2'}>
           {root.map((n) => (

@@ -42,7 +42,7 @@ function MonthBlock({
 
   return (
     <div className="flex flex-col items-center shrink-0 rounded-lg border border-white/[0.08] bg-black/20 px-1.5 pt-1.5 pb-2 sm:px-2 sm:pt-2 sm:pb-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-      <p className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.2em] text-gs-muted/95 mb-2 w-full text-center">
+      <p className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.2em] text-ta-muted/95 mb-2 w-full text-center">
         {monthLabel}
       </p>
       <div className="flex gap-[3px] sm:gap-1">
@@ -62,7 +62,7 @@ function MonthBlock({
                     'w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-sm shrink-0 transition-transform hover:scale-110 hover:z-10',
                     cellClass(cell),
                     cell.isToday && cell.inDisplayMonth
-                      ? 'ring-2 ring-gs-accent/90 ring-offset-1 ring-offset-black/50'
+                      ? 'ring-2 ring-ta-accent/90 ring-offset-1 ring-offset-black/50'
                       : '',
                   ].join(' ')}
                   role="img"
@@ -91,13 +91,13 @@ export function StreakContributionHeatmap({ state, todayKey }: Props) {
 
   return (
     <div className="w-full min-w-0 border-t border-white/[0.08] pt-4 mt-1">
-      <p className="font-mono text-[10px] text-gs-muted mb-3 leading-relaxed">
+      <p className="font-mono text-[10px] text-ta-muted mb-3 leading-relaxed">
         Five months · this month in the center, two before and two after · each block is one calendar month ·
-        color = tasks marked <span className="text-gs-text/85">done</span> that day (0–5; brightest is 5+).
+        color = tasks marked <span className="text-ta-text/85">done</span> that day (0–5; brightest is 5+).
       </p>
       <div className="flex gap-2 sm:gap-3 items-stretch min-w-0">
         <div
-          className="flex flex-col justify-between shrink-0 pt-9 pb-2 text-[9px] font-mono text-gs-muted/90 uppercase tracking-tighter select-none"
+          className="flex flex-col justify-between shrink-0 pt-9 pb-2 text-[9px] font-mono text-ta-muted/90 uppercase tracking-tighter select-none"
           aria-hidden
         >
           {WEEKDAY_LETTERS.map((l, i) => (
@@ -115,7 +115,7 @@ export function StreakContributionHeatmap({ state, todayKey }: Props) {
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2 mt-4">
-        <span className="font-mono text-[9px] text-gs-muted">Less</span>
+        <span className="font-mono text-[9px] text-ta-muted">Less</span>
         <div className="flex gap-1">
           {([0, 1, 2, 3, 4, 5] as const).map((lv) => (
             <div
@@ -125,7 +125,7 @@ export function StreakContributionHeatmap({ state, todayKey }: Props) {
             />
           ))}
         </div>
-        <span className="font-mono text-[9px] text-gs-muted">More</span>
+        <span className="font-mono text-[9px] text-ta-muted">More</span>
       </div>
     </div>
   )

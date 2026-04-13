@@ -1,6 +1,10 @@
 export const CURRENT_SCHEMA_VERSION = 6
 
-export const STORAGE_KEY = 'gradSprint:v1'
+/** Browser `localStorage` key for planner state (no server). */
+export const STORAGE_KEY = 'termAnchor:v1'
+
+/** Older installs only; read once in `loadBrowserState` then migrated to {@link STORAGE_KEY}. */
+export const LEGACY_STORAGE_KEYS = ['gradSprint:v1'] as const
 
 export type Profile = {
   displayName?: string
