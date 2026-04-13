@@ -75,7 +75,6 @@ Add three images under **`screenshots/`** (repo root). Use these exact filenames
 
 ![Term Anchor — Settings](screenshots/settings.png)
 
-*If the images are missing, GitHub may show a broken image until you add the files locally and push.*
 
 ## Time tracking on Today
 
