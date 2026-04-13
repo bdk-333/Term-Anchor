@@ -131,13 +131,19 @@ export function DashboardTimerSections() {
       <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-3 p-5 sm:p-6">
         <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Time tracking</h3>
         <p className="text-sm text-gs-muted leading-relaxed">
-          Run the app with the dev server (<span className="font-mono text-gs-text/90">npm start</span>) so{' '}
-          <span className="font-mono text-gs-text/90">/api/time</span> is available (SQLite at{' '}
-          <span className="font-mono text-gs-text/90">data/time-tracking.db</span>).
+          Time tracking needs the{' '}
+          <span className="text-gs-text">Node server</span> on
+          the same address as this page. From the project folder run{' '}
+          <span className="font-mono text-gs-text/90">npm run dev</span> or build once and run{' '}
+          <span className="font-mono text-gs-text/90">npm start</span> / double-click{' '}
+          <span className="font-mono text-gs-text/90">Start-TermAnchor.cmd</span>. Timer data lives in{' '}
+          <span className="font-mono text-gs-text/90">data/time-tracking.db</span> (not in Export JSON).
         </p>
         {persistenceBackend === 'local' && (
           <p className="text-sm text-gs-muted leading-relaxed">
-            Planner data is in the browser until you use the full local app on the same origin.
+            Planner rows are still syncing to this browser session; use the local app URL (
+            <span className="font-mono text-gs-text/80">127.0.0.1</span>) so planner and timer share one
+            backend.
           </p>
         )}
       </section>

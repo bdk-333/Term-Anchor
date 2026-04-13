@@ -31,6 +31,26 @@ export function OnboardingPage() {
 
   const step1Valid = Boolean(anchorDate && semesterStart && semesterEnd && anchorLabel.trim())
 
+  function skipToPlannerOnly() {
+    setState((s) => ({
+      ...s,
+      profile: {
+        ...s.profile,
+        anchorLabel: anchorLabel.trim() || '',
+        anchorDate: '',
+        semesterStart: '',
+        semesterEnd: '',
+        displayName: displayName.trim() || undefined,
+        degreeFocus: degreeFocus.trim() || undefined,
+        jobTarget: jobTarget.trim() || undefined,
+        commuteMinutes: commuteMinutes.trim() ? Number(commuteMinutes) : undefined,
+        weekendNotes: weekendNotes.trim() || undefined,
+        onboardingComplete: true,
+      },
+    }))
+    navigate('/', { replace: true })
+  }
+
   function finish() {
     setState((s) => ({
       ...s,
@@ -127,14 +147,27 @@ export function OnboardingPage() {
               Example: Use the first day of classes and the last day of finals for a full-term progress bar.
             </span>
           </label>
-          <button
-            type="button"
-            disabled={!step1Valid}
-            className="w-full py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-gs-accent text-gs-bg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-opacity shadow-[0_0_24px_-6px_rgba(232,255,71,0.55)]"
-            onClick={() => setStep(1)}
-          >
-            Continue
-          </button>
+          <div className="space-y-3">
+            <button
+              type="button"
+              disabled={!step1Valid}
+              className="w-full py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-gs-accent text-gs-bg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-opacity shadow-[0_0_24px_-6px_rgba(232,255,71,0.55)]"
+              onClick={() => setStep(1)}
+            >
+              Continue
+            </button>
+            <button
+              type="button"
+              className="w-full py-3 rounded-lg font-mono text-xs uppercase tracking-wider border border-gs-border text-gs-muted hover:text-gs-text hover:border-gs-muted transition-colors"
+              onClick={skipToPlannerOnly}
+            >
+              Skip — planner only
+            </button>
+            <p className="text-xs text-gs-muted/90 font-sans leading-snug text-center">
+              You can add anchor and term dates later in Settings. Countdown and term bar stay hidden
+              until those are set.
+            </p>
+          </div>
         </section>
       )}
 

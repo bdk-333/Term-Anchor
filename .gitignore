@@ -23,7 +23,6 @@ Time-Tracking-App/
 
 # Local chat / session archives (not part of the distributed app)
 CHAT_ARCHIVE_grad-sprint.md
-CHAT_HISTORY.md
 
 # Logs
 *.log
