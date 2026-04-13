@@ -55,8 +55,6 @@ Static output is in **`dist/`**. The Node script **`scripts/term-anchor-server.m
 
 ## Screenshots
 
-Add three images under **`screenshots/`** (repo root). Use these exact filenames so they match the README:
-
 | File | Page |
 | ---- | ---- |
 | **`screenshots/home.png`** | Today (home) — lanes, streak, heatmap, time |
