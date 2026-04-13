@@ -63,7 +63,13 @@ Add three images under **`screenshots/`** (repo root). Use these exact filenames
 | **`screenshots/week.png`** | Week — month grid, lane bars |
 | **`screenshots/settings.png`** | Settings — backup, goals, lanes |
 
-![Term Anchor — Today (home)](screenshots/home.png)
+![Term Anchor — Today (home)](screenshots/home1.png)
+
+![Term Anchor — Today (home)](screenshots/home2.png)
+
+![Term Anchor — Today (home)](screenshots/home3.png)
+
+![Term Anchor — Today (home)](screenshots/home4.png)
 
 ![Term Anchor — Week](screenshots/week.png)
 
@@ -94,10 +100,6 @@ The **daily log** supports multiple sections, drag reorder, and per-section **no
 ## Backup and restore
 
 Open **Settings** in the app → **Export JSON** / **Import JSON**. Import replaces the current saved state (the disk file when using the local server, otherwise the browser copy). For a **full** local backup including time tracking, also copy **`data/time-tracking.db`**.
-
-## Change log (high level)
-
-See **`CHAT_HISTORY.md`** in this repo for merge notes and decisions (not a substitute for `git log`).
 
 ## Tech stack
 
