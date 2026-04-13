@@ -114,7 +114,7 @@ export function CornellLogFields({ section, onChange }: Props) {
                     onChange={(e) => updateRow(row.id, { cue: e.target.value })}
                     placeholder="Short cue"
                     rows={3}
-                    className="gs-glass-input box-border w-full min-h-[3.25rem] min-w-0 px-2 py-1.5 text-sm text-gs-text resize-y font-sans leading-snug bg-black/15 border-white/10"
+                    className="ta-glass-input box-border w-full min-h-[3.25rem] min-w-0 px-2 py-1.5 text-sm text-ta-text resize-y font-sans leading-snug bg-black/15 border-white/10"
                     aria-label={`Cue ${i + 1}`}
                   />
                 </div>
@@ -136,13 +136,13 @@ export function CornellLogFields({ section, onChange }: Props) {
                     onChange={(e) => updateRow(row.id, { notes: e.target.value })}
                     placeholder="Notes for this cue (use * at line starts if you like)"
                     rows={6}
-                    className="gs-glass-input box-border w-full min-h-[5.5rem] min-w-0 px-2 py-1.5 text-sm text-gs-text resize-y font-sans leading-relaxed bg-black/10 border-white/10"
+                    className="ta-glass-input box-border w-full min-h-[5.5rem] min-w-0 px-2 py-1.5 text-sm text-ta-text resize-y font-sans leading-relaxed bg-black/10 border-white/10"
                     aria-label={`Notes for cue ${i + 1}`}
                   />
                   {rows.length > 1 ? (
                     <button
                       type="button"
-                      className="font-mono text-xs text-gs-danger/90 hover:text-gs-danger shrink-0 self-start pt-1 px-0.5"
+                      className="font-mono text-xs text-ta-danger/90 hover:text-ta-danger shrink-0 self-start pt-1 px-0.5"
                       onClick={() => removeRow(row.id)}
                       aria-label={`Remove row ${i + 1}`}
                     >
@@ -158,7 +158,7 @@ export function CornellLogFields({ section, onChange }: Props) {
             <button
               type="button"
               aria-label="Resize cues and notes column widths"
-              className="cursor-col-resize bg-white/[0.06] hover:bg-gs-accent/20 border-x border-white/10 hover:border-gs-accent/35 z-10 min-h-[120px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]"
+              className="cursor-col-resize bg-white/[0.06] hover:bg-ta-accent/20 border-x border-white/10 hover:border-ta-accent/35 z-10 min-h-[120px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]"
               style={{ gridColumn: 2, gridRow: '1 / -1' }}
               onMouseDown={startDrag}
             />
@@ -168,7 +168,7 @@ export function CornellLogFields({ section, onChange }: Props) {
             <button
               type="button"
               onClick={addRow}
-              className="font-mono text-[10px] uppercase tracking-wider text-gs-accent/90 hover:text-gs-accent border border-dashed border-gs-accent/35 rounded-md px-3 py-1.5 w-full sm:w-auto"
+              className="font-mono text-[10px] uppercase tracking-wider text-ta-accent/90 hover:text-ta-accent border border-dashed border-ta-accent/35 rounded-md px-3 py-1.5 w-full sm:w-auto"
             >
               + Add cue & notes row
             </button>
@@ -185,7 +185,7 @@ export function CornellLogFields({ section, onChange }: Props) {
           onChange={(e) => onChange({ cornellSummary: e.target.value })}
           placeholder="Top-level takeaways, quick reference…"
           rows={3}
-          className="gs-glass-input w-full px-2 py-2 text-sm text-gs-text resize-y font-sans leading-relaxed bg-black/20 border-white/10 min-h-[72px]"
+          className="ta-glass-input w-full px-2 py-2 text-sm text-ta-text resize-y font-sans leading-relaxed bg-black/20 border-white/10 min-h-[72px]"
         />
       </div>
     </div>

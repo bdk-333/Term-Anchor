@@ -45,15 +45,15 @@ export function TaskPlannedTimeInline({
     <div
       className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${compact ? 'mt-1' : 'mt-1.5'} ${compact ? 'max-w-full' : ''}`}
     >
-      <span className="font-mono text-[9px] text-gs-muted uppercase shrink-0">When</span>
+      <span className="font-mono text-[9px] text-ta-muted uppercase shrink-0">When</span>
       <input
         type="time"
         aria-label="Planned start"
         value={startVal}
         onChange={(e) => setStart(e.target.value)}
-        className={`gs-glass-input font-mono text-[10px] px-1.5 py-1 text-gs-text ${compact ? 'w-[6.5rem]' : 'w-[7.25rem]'}`}
+        className={`ta-glass-input font-mono text-[10px] px-1.5 py-1 text-ta-text ${compact ? 'w-[6.5rem]' : 'w-[7.25rem]'}`}
       />
-      <label className="flex items-center gap-1 font-mono text-[9px] text-gs-muted shrink-0">
+      <label className="flex items-center gap-1 font-mono text-[9px] text-ta-muted shrink-0">
         <input
           type="checkbox"
           checked={hasEnd}
@@ -74,7 +74,7 @@ export function TaskPlannedTimeInline({
           aria-label="Planned end"
           value={endVal}
           onChange={(e) => setEnd(e.target.value)}
-          className={`gs-glass-input font-mono text-[10px] px-1.5 py-1 text-gs-text ${compact ? 'w-[6.5rem]' : 'w-[7.25rem]'}`}
+          className={`ta-glass-input font-mono text-[10px] px-1.5 py-1 text-ta-text ${compact ? 'w-[6.5rem]' : 'w-[7.25rem]'}`}
         />
       ) : null}
     </div>

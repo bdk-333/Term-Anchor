@@ -73,7 +73,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   if (!hydrated) {
     return (
-      <div className="gs-app-boot flex min-h-dvh items-center justify-center text-zinc-200">
+      <div className="ta-app-boot flex min-h-dvh items-center justify-center text-zinc-200">
         <p className="text-sm tracking-wide text-zinc-400">Loading…</p>
       </div>
     )

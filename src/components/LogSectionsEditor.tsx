@@ -39,7 +39,7 @@ function LogSectionBody({
     case 'default':
       return (
         <label className="block space-y-1.5">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-ta-muted">
             Details
           </span>
           <textarea
@@ -47,7 +47,7 @@ function LogSectionBody({
             onChange={(e) => patch({ details: e.target.value })}
             rows={6}
             placeholder="Paragraphs, bullets, context…"
-            className="gs-glass-input w-full px-3 py-2.5 text-sm text-gs-text resize-y font-sans leading-relaxed min-h-[120px]"
+            className="ta-glass-input w-full px-3 py-2.5 text-sm text-ta-text resize-y font-sans leading-relaxed min-h-[120px]"
           />
         </label>
       )
@@ -112,7 +112,7 @@ function AttachmentsBlock({
 
   return (
     <div className="space-y-2 border-t border-white/[0.06] pt-3 mt-3">
-      <span className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">Attachments</span>
+      <span className="font-mono text-[10px] uppercase tracking-wider text-ta-muted">Attachments</span>
       <div className="flex flex-wrap gap-2">
         <input
           ref={imgRef}
@@ -127,14 +127,14 @@ function AttachmentsBlock({
         <button
           type="button"
           onClick={() => imgRef.current?.click()}
-          className="font-mono text-[10px] uppercase px-2 py-1 rounded border border-white/15 text-gs-muted hover:border-gs-accent/40"
+          className="font-mono text-[10px] uppercase px-2 py-1 rounded border border-white/15 text-ta-muted hover:border-ta-accent/40"
         >
           + Image
         </button>
         <button
           type="button"
           onClick={addLink}
-          className="font-mono text-[10px] uppercase px-2 py-1 rounded border border-white/15 text-gs-muted hover:border-gs-accent/40"
+          className="font-mono text-[10px] uppercase px-2 py-1 rounded border border-white/15 text-ta-muted hover:border-ta-accent/40"
         >
           + Link
         </button>
@@ -153,7 +153,7 @@ function AttachmentsBlock({
                   href={a.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[10px] text-gs-accent break-all line-clamp-3"
+                  className="text-[10px] text-ta-accent break-all line-clamp-3"
                 >
                   {a.label || a.href}
                 </a>
@@ -161,7 +161,7 @@ function AttachmentsBlock({
               <button
                 type="button"
                 onClick={() => remove(a.id)}
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gs-bg text-gs-danger text-xs opacity-0 group-hover:opacity-100 border border-white/20"
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-ta-bg text-ta-danger text-xs opacity-0 group-hover:opacity-100 border border-white/20"
                 aria-label="Remove attachment"
               >
                 ×
@@ -205,14 +205,14 @@ function SortableLogCard({
     <li
       ref={setNodeRef}
       style={style}
-      className={`gs-glass-panel gs-glass-panel--tilt-none p-4 space-y-3 border border-white/[0.06] ${
-        isDragging ? 'opacity-60 ring-1 ring-gs-accent/40' : ''
+      className={`ta-glass-panel ta-glass-panel--tilt-none p-4 space-y-3 border border-white/[0.06] ${
+        isDragging ? 'opacity-60 ring-1 ring-ta-accent/40' : ''
       }`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
           type="button"
-          className="cursor-grab active:cursor-grabbing font-mono text-gs-muted touch-none px-1"
+          className="cursor-grab active:cursor-grabbing font-mono text-ta-muted touch-none px-1"
           {...attributes}
           {...listeners}
           aria-label="Drag to reorder"
@@ -223,7 +223,7 @@ function SortableLogCard({
           value={section.noteMode}
           onChange={(e) => setMode(e.target.value as NoteMode)}
           aria-label="Note-taking method"
-          className="gs-native-select text-xs max-w-[160px]"
+          className="ta-native-select text-xs max-w-[160px]"
         >
           {MODE_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -234,20 +234,20 @@ function SortableLogCard({
         <button
           type="button"
           onClick={onRemove}
-          className="font-mono text-xs text-gs-muted hover:text-gs-danger ml-auto"
+          className="font-mono text-xs text-ta-muted hover:text-ta-danger ml-auto"
         >
           Remove
         </button>
       </div>
       <label className="block space-y-1.5">
-        <span className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-ta-muted">
           Section title
         </span>
         <input
           value={section.title}
           onChange={(e) => onChange({ ...section, title: e.target.value })}
           placeholder="e.g. Lec 3, RAG project…"
-          className="gs-glass-input w-full px-3 py-2 text-sm text-gs-text font-sans"
+          className="ta-glass-input w-full px-3 py-2 text-sm text-ta-text font-sans"
         />
       </label>
       <LogSectionBody section={section} onChange={onChange} />
@@ -318,9 +318,9 @@ export function LogSectionsEditor({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted">{label}</span>
+        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-ta-muted">{label}</span>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-2 font-mono text-[10px] text-gs-muted cursor-pointer">
+          <label className="flex items-center gap-2 font-mono text-[10px] text-ta-muted cursor-pointer">
             <input
               type="checkbox"
               checked={sideBySide}
@@ -333,7 +333,7 @@ export function LogSectionsEditor({
             type="button"
             onClick={addSection}
             disabled={sections.length >= MAX_SECTIONS}
-            className="font-mono text-xs uppercase tracking-wider px-3 py-1.5 rounded-md border border-white/12 hover:border-gs-accent/50 hover:shadow-[0_0_16px_-6px_rgba(232,255,71,0.25)] disabled:opacity-35 transition-all"
+            className="font-mono text-xs uppercase tracking-wider px-3 py-1.5 rounded-md border border-white/12 hover:border-ta-accent/50 hover:shadow-[0_0_16px_-6px_rgba(232,255,71,0.25)] disabled:opacity-35 transition-all"
           >
             {addSectionLabel}
           </button>
@@ -341,7 +341,7 @@ export function LogSectionsEditor({
       </div>
 
       {sections.length === 0 ? (
-        <p className="text-sm text-gs-muted leading-relaxed">
+        <p className="text-sm text-ta-muted leading-relaxed">
           No log sections yet. Add one and pick a note-taking method per section.
         </p>
       ) : (

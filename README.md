@@ -2,31 +2,24 @@
 
 A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, **month planner** on Week (lane-colored day tiles, day-detail modal), habits, streaks, a **contribution-style streak heatmap** on Today, **sectioned daily log** (Cornell / outline / boxed notes, attachments), and **integrated time tracking** (lanes → projects → tasks, timer, today’s totals).
 
-**Distribution:** this repo is meant to be **cloned or downloaded and run on your machine** with Node.js (see **Quick start** below). There is **no** GitHub Pages / static-only build path for the full app: time tracking and disk-backed planner state require the included local server.
-
-## Quick start (new machine)
-
-1. Install **[Node.js](https://nodejs.org/) LTS** — use **v22.5 or newer** (required for built-in SQLite `node:sqlite` used by time tracking).
-2. Clone or download this repository and open a terminal **in the project folder**.
-3. Run **`npm install`** once.
-4. Run **`npm run build`** once (creates **`dist/`**).
-5. **Windows:** double-click **`Start-TermAnchor.cmd`** (or run **`npm start`**). Your browser should open **http://127.0.0.1:8787/**.
-6. **macOS / Linux:** run **`npm start`**, then open **http://127.0.0.1:8787/** in a browser (or use **`start-grad-sprint.command`** on macOS after `chmod +x`). Optional port: set **`TERM_ANCHOR_PORT`** (see **`.env.example`**).
-7. Complete **onboarding** the first time you open the app. After that, use **step 5–6** whenever you want to run Term Anchor.
-
-Your data lives next to the project under **`data/`** (see below). Use **Settings → Export JSON** for backups.
-
 ## Where your data lives
 
-- **Local server (recommended):** Run the app with **`Start-TermAnchor.cmd`** (Windows) or **`npm start`** after a build. Your progress is saved in **`data/term-anchor-state.json`** next to the project. The app is served at **http://127.0.0.1:8787/** so **Edge, Brave, Chrome, or any browser** can use the **same file**—switch browsers without starting over. You do not need PowerShell as Administrator.
-- **Time tracking (local server only):** When you use **`npm run dev`** or **`npm start`**, the **Today** page talks to **`/api/time/*`** (timer, projects, tasks, totals). Data is stored in **`data/time-tracking.db`** (SQLite via Node’s built-in **`node:sqlite`**). Opening **`dist/index.html` directly** or using plain static hosting **does not** run those APIs. **Backup:** copy **`data/time-tracking.db`** if you want to archive time entries; **Settings → Export JSON** does not include the SQLite file.
-- **Browser-only fallback:** If you open a build **without** the Node server, planner data may stay in **`localStorage`** only; the time section on **Today** shows that the API is unavailable. For the intended experience, always use **`npm start`** or **`Start-TermAnchor.cmd`** after **`npm run build`**.
+- **Local server (recommended):** Run the app with **`Start-TermAnchor.cmd`** (Windows), **`Start-TermAnchor.ps1`**, or **`npm start`** after a build. Your progress is saved in **`data/term-anchor-state.json`** next to the project. The app is served at **http://127.0.0.1:8787/** so **Edge, Brave, Chrome, or any browser** can use the **same file**—switch browsers without starting over. You do not need PowerShell as Administrator.
+- **Time tracking (local server only):** When you use **`npm run dev`** or **`npm start`**, the **Today** page talks to **`/api/time/*`** (timer, projects, tasks, totals). Data is stored in **`data/time-tracking.db`** (SQLite via **`sql.js`**, WASM — no native compiler required). There is no separate time app to run; static hosting or opening `dist/index.html` without the Node server **cannot** persist timer data. **Backup:** copy **`data/time-tracking.db`** if you want to archive time entries; **Settings → Export JSON** does not include the SQLite file.
+- **Static hosting / no server:** Planner data stays in the browser (`localStorage`). The time section on **Today** explains that the timer API needs the Node server. Use **Settings → Export JSON** for planner backups.
+
+## Requirements
+
+- **Node.js 18+** (LTS recommended). Time tracking uses **`sql.js`** (SQLite in WebAssembly), so **`npm install`** does not require Python, Visual Studio, or other native build chains for the timer database.
 
 ## Easiest way to run (Windows)
 
-After the one-time **Quick start** steps: double-click **`Start-TermAnchor.cmd`**, keep the window open while you use Term Anchor (closing it stops the server). **Pick a specific browser:** right‑click **`Open-Term-Anchor.url`** → **Open with** → Brave, Firefox, etc. (the server must already be running).
+1. Install [Node.js](https://nodejs.org/) (LTS 18+).
+2. Double-click **`Start-TermAnchor.cmd`**. On first use it runs **`npm install`** and **`npm run build`** automatically, then starts the server.
+3. Your default browser opens the app. Leave the window open while you use Term Anchor; closing it stops the server.
+4. **Pick a specific browser:** start with the `.cmd` as above, then right‑click **`Open-Term-Anchor.url`** → **Open with** → choose Brave, Firefox, etc. (The server must already be running.)
 
-Change the port with **`TERM_ANCHOR_PORT`** (default `8787`); if you change it, edit the URL inside **`Open-Term-Anchor.url`** to match (see **`.env.example`**).
+Change the port with the environment variable **`TERM_ANCHOR_PORT`** (default `8787`). If you change it, edit the URL inside `Open-Term-Anchor.url` to match.
 
 ## Develop locally
 
@@ -37,25 +30,50 @@ npm run dev
 
 `npm run dev` uses the same **`data/term-anchor-state.json`** API as the production local server, and the same **`/api/time/*`** endpoints as **`npm start`**, so dev and “double-click” runs share planner state and the time database when you use the same project folder.
 
+## Tests
+
+```bash
+npm test
+```
+
+Vitest runs a small suite over **`migrate`**, streak helpers, and related **`src/lib`** logic.
+
 ## Other launchers
 
-- **PowerShell:** `.\Start-GradSprint.ps1` (starts server + opens the app).
-- **macOS:** `chmod +x start-grad-sprint.command`, then double-click it (opens default browser after a short delay).
+- **PowerShell:** `.\Start-TermAnchor.ps1` (first-run install + build if needed, then server + browser).
+- **macOS:** `chmod +x start-term-anchor.command`, then double-click it (opens default browser after a short delay).
 
 ## Production build
 
 ```bash
+npm install
 npm run build
 npm start
 ```
 
 Static output is in **`dist/`**. The Node script **`scripts/term-anchor-server.mjs`** serves `dist/` and reads/writes **`data/term-anchor-state.json`**, and handles **`/api/time/*`** for the Today page timer (SQLite under **`scripts/time-tracker/`**).
 
+## Screenshots
+
+Add three images under **`screenshots/`** (repo root). Use these exact filenames so they match the README:
+
+| File | Page |
+| ---- | ---- |
+| **`screenshots/home.png`** | Today (home) — lanes, streak, heatmap, time |
+| **`screenshots/week.png`** | Week — month grid, lane bars |
+| **`screenshots/settings.png`** | Settings — backup, goals, lanes |
+
+![Term Anchor — Today (home)](screenshots/home.png)
+
+![Term Anchor — Week](screenshots/week.png)
+
+![Term Anchor — Settings](screenshots/settings.png)
+
+*If the images are missing, GitHub may show a broken image until you add the files locally and push.*
+
 ## Time tracking on Today
 
 On **Today** (home), use **Start timer** on a lane task or open the **Time tracking** section. Model: **lane** (same names as your planner lanes, plus **Others**) → optional **projects** (each project lives in one lane) → **tasks** (most tasks have **no project** and roll up to the Others lane; you can attach a project when needed). The UI lists **tasks** before **projects**; create a project with a lane, then pick it from the task **Project** dropdown (all projects are listed). **Start** an ad-hoc or linked task, then **Pause**, **Resume**, and **Stop**. Starting another task stops the previous one at the current minute. **Tracked time today** shows minute-level totals for the local calendar day. Old links to **`/time`** redirect to **`/`**.
-
-Requires **Node 22.5+** (for `node:sqlite`). No extra npm native modules.
 
 ## Week — month planner
 
@@ -64,6 +82,10 @@ The **Week** tab shows a **Monday-start month calendar** for the month you’re 
 ## Today — streak heatmap
 
 Under the fire **streak** count and 7-day “saved” pips, a **five-month contribution-style grid** shows **tasks marked done** per day on an **orange** intensity scale (**0–5**, where **5** means five or more). Blocks are **separate cards** per calendar month: **two months before**, **current month (center)**, **two months after** (Sunday-first columns within each block, like a compact GitHub / LeetCode graph). Padding days outside each labeled month appear as neutral tiles.
+
+## Onboarding
+
+First launch asks for **anchor** and **term** dates. You can use **Skip — planner only** to go straight to tasks and logs; add dates later under **Settings** (countdown and term bar stay off until both anchor and term fields are set).
 
 ## Daily log and notes (Today)
 
@@ -75,11 +97,11 @@ Open **Settings** in the app → **Export JSON** / **Import JSON**. Import repla
 
 ## Change log (high level)
 
-Use **`git log`** for full history. Maintainers may keep a private handoff log as **`CHAT_HISTORY.md`** locally (gitignored in this repo).
+See **`CHAT_HISTORY.md`** in this repo for merge notes and decisions (not a substitute for `git log`).
 
 ## Tech stack
 
-Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit. Local APIs: file-backed state + **`node:sqlite`** for time tracking. The main content column uses **`gs-container`** (wider on large screens) so the month planner and heatmap have enough horizontal room.
+Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit. Local APIs: file-backed state + **SQLite** (`sql.js` / WASM) for time tracking. The main content column uses **`ta-container`** (wider on large screens) so the month planner and heatmap have enough horizontal room. A React **error boundary** catches render failures and offers a reload path.
 
 ## Roadmap (v1.1)
 

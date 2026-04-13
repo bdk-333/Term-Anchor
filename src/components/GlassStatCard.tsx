@@ -10,9 +10,9 @@ export function GlassStatCard({
   variant: StatVariant
 }) {
   return (
-    <div className={`gs-glass-stat gs-glass-stat--${variant}`}>
-      <p className="gs-glass-stat-label">{label}</p>
-      <p className="gs-glass-stat-value">{value}</p>
+    <div className={`ta-glass-stat ta-glass-stat--${variant}`}>
+      <p className="ta-glass-stat-label">{label}</p>
+      <p className="ta-glass-stat-value">{value}</p>
     </div>
   )
 }

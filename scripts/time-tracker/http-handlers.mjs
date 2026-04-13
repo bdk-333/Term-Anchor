@@ -7,6 +7,22 @@ import * as projectService from './projectService.mjs'
 import * as taskService from './taskService.mjs'
 import * as timerService from './timerService.mjs'
 
+let timeApiGate = Promise.resolve()
+
+/**
+ * Serialize `/api/time/*` handling so the WASM SQLite database never runs overlapping
+ * transactions from concurrent HTTP requests.
+ * @template T
+ * @param {() => Promise<T>} fn
+ * @returns {Promise<T>}
+ */
+function runTimeApiExclusive(fn) {
+  const run = () => fn()
+  const next = timeApiGate.then(run, run)
+  timeApiGate = next.catch(() => {})
+  return next
+}
+
 function sendJson(res, status, body) {
   res.statusCode = status
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -50,6 +66,7 @@ export async function timeTrackerHandle(req, res) {
   const pathname = decodeURIComponent(u.pathname)
   if (!pathname.startsWith('/api/time')) return false
 
+  return runTimeApiExclusive(async () => {
   const method = req.method || 'GET'
 
   try {
@@ -147,4 +164,5 @@ export async function timeTrackerHandle(req, res) {
     sendJson(res, status, { error: true, message })
     return true
   }
+  })
 }

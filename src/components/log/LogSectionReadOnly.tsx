@@ -7,10 +7,10 @@ function OutlineRead({ nodes, listType }: { nodes: OutlineNode[]; listType: 'ord
   return (
     <Tag className={listType === 'ordered' ? 'list-decimal pl-5 space-y-2' : 'list-disc pl-5 space-y-2'}>
       {nodes.map((n) => (
-        <li key={n.id} className="text-sm text-gs-text">
-          {n.title ? <p className="font-medium text-gs-text mb-1">{n.title}</p> : null}
+        <li key={n.id} className="text-sm text-ta-text">
+          {n.title ? <p className="font-medium text-ta-text mb-1">{n.title}</p> : null}
           {n.body.trim() ? (
-            <p className="text-gs-muted whitespace-pre-wrap leading-relaxed">{n.body}</p>
+            <p className="text-ta-muted whitespace-pre-wrap leading-relaxed">{n.body}</p>
           ) : null}
           {n.children.length > 0 && (
             <OutlineRead nodes={n.children} listType={n.childrenListType} />
@@ -30,9 +30,9 @@ function BoxRead({ nodes, depth = 0 }: { nodes: BoxNode[]; depth?: number }) {
           key={b.id}
           className="rounded-lg border border-white/12 bg-black/20 p-3 space-y-2"
         >
-          <p className="font-mono text-sm font-semibold text-gs-accent">{b.title || '—'}</p>
+          <p className="font-mono text-sm font-semibold text-ta-accent">{b.title || '—'}</p>
           {b.body?.trim() ? (
-            <p className="text-sm text-gs-muted whitespace-pre-wrap leading-relaxed">{b.body}</p>
+            <p className="text-sm text-ta-muted whitespace-pre-wrap leading-relaxed">{b.body}</p>
           ) : null}
           {b.children.length > 0 && <BoxRead nodes={b.children} depth={depth + 1} />}
         </div>
@@ -44,15 +44,15 @@ function BoxRead({ nodes, depth = 0 }: { nodes: BoxNode[]; depth?: number }) {
 export function LogSectionReadOnly({ section }: { section: DayLogSection }) {
   const atts = section.attachments ?? []
   return (
-    <div className="gs-glass-panel gs-glass-panel--tilt-none p-4 border border-white/[0.06] space-y-3">
+    <div className="ta-glass-panel ta-glass-panel--tilt-none p-4 border border-white/[0.06] space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+        <p className="font-mono text-xs uppercase tracking-wider text-ta-muted">
           {section.noteMode} · {section.title.trim() || 'Untitled section'}
         </p>
       </div>
 
       {section.noteMode === 'default' && (
-        <p className="text-sm text-gs-muted whitespace-pre-wrap leading-relaxed">
+        <p className="text-sm text-ta-muted whitespace-pre-wrap leading-relaxed">
           {section.details?.trim() || '—'}
         </p>
       )}
@@ -77,7 +77,7 @@ export function LogSectionReadOnly({ section }: { section: DayLogSection }) {
                       <span className="text-rose-200/90 shrink-0 font-sans" aria-hidden>
                         -
                       </span>
-                      <p className="text-gs-text whitespace-pre-wrap leading-relaxed min-w-0">
+                      <p className="text-ta-text whitespace-pre-wrap leading-relaxed min-w-0">
                         {row.cue.trim() ? row.cue : '—'}
                       </p>
                     </div>
@@ -85,7 +85,7 @@ export function LogSectionReadOnly({ section }: { section: DayLogSection }) {
                       <span className="text-sky-300/85 shrink-0 font-sans" aria-hidden>
                         *
                       </span>
-                      <p className="text-gs-muted whitespace-pre-wrap leading-relaxed min-w-0">
+                      <p className="text-ta-muted whitespace-pre-wrap leading-relaxed min-w-0">
                         {row.notes.trim() ? row.notes : '—'}
                       </p>
                     </div>
@@ -95,7 +95,7 @@ export function LogSectionReadOnly({ section }: { section: DayLogSection }) {
             </div>
             <div className="rounded-lg border border-sky-400/20 bg-sky-500/[0.06] p-2">
               <p className="font-mono text-[10px] uppercase text-sky-200/80 mb-1">Summary</p>
-              <p className="text-sm text-gs-muted whitespace-pre-wrap">{section.cornellSummary?.trim() || '—'}</p>
+              <p className="text-sm text-ta-muted whitespace-pre-wrap">{section.cornellSummary?.trim() || '—'}</p>
             </div>
           </div>
         )
@@ -121,7 +121,7 @@ export function LogSectionReadOnly({ section }: { section: DayLogSection }) {
                 href={a.href}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-gs-accent underline break-all"
+                className="text-xs text-ta-accent underline break-all"
               >
                 {a.label || a.href}
               </a>

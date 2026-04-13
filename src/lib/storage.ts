@@ -2,6 +2,7 @@ import {
   CURRENT_SCHEMA_VERSION,
   type AppState,
   type DayLogSection,
+  LEGACY_STORAGE_KEYS,
   STORAGE_KEY,
   type Profile,
   type TaskItem,
@@ -206,9 +207,23 @@ export function migrate(raw: unknown): AppState {
 /** Browser-only storage (`localStorage`) when the Term Anchor server is not used or unreachable. */
 export function loadBrowserState(): AppState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    let raw = localStorage.getItem(STORAGE_KEY)
+    let migratedFromLegacy = false
+    if (!raw) {
+      for (const legacyKey of LEGACY_STORAGE_KEYS) {
+        const legacy = localStorage.getItem(legacyKey)
+        if (legacy) {
+          raw = legacy
+          migratedFromLegacy = true
+          localStorage.removeItem(legacyKey)
+          break
+        }
+      }
+    }
     if (!raw) return createDefaultState()
-    return migrate(JSON.parse(raw))
+    const state = migrate(JSON.parse(raw))
+    if (migratedFromLegacy) saveBrowserState(state)
+    return state
   } catch {
     return createDefaultState()
   }

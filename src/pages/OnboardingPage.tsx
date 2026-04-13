@@ -6,7 +6,7 @@ import { useAppState } from '@/context/AppStateContext'
 const steps = ['Anchor & term', 'Optional context', 'Ready']
 
 const inputClass =
-  'gs-glass-input w-full px-3 py-2.5 font-mono text-sm text-gs-text placeholder:text-gs-muted/70 placeholder:font-sans'
+  'ta-glass-input w-full px-3 py-2.5 font-mono text-sm text-ta-text placeholder:text-ta-muted/70 placeholder:font-sans'
 
 export function OnboardingPage() {
   const { state, setState } = useAppState()
@@ -31,6 +31,26 @@ export function OnboardingPage() {
 
   const step1Valid = Boolean(anchorDate && semesterStart && semesterEnd && anchorLabel.trim())
 
+  function skipToPlannerOnly() {
+    setState((s) => ({
+      ...s,
+      profile: {
+        ...s.profile,
+        anchorLabel: anchorLabel.trim() || '',
+        anchorDate: '',
+        semesterStart: '',
+        semesterEnd: '',
+        displayName: displayName.trim() || undefined,
+        degreeFocus: degreeFocus.trim() || undefined,
+        jobTarget: jobTarget.trim() || undefined,
+        commuteMinutes: commuteMinutes.trim() ? Number(commuteMinutes) : undefined,
+        weekendNotes: weekendNotes.trim() || undefined,
+        onboardingComplete: true,
+      },
+    }))
+    navigate('/', { replace: true })
+  }
+
   function finish() {
     setState((s) => ({
       ...s,
@@ -54,31 +74,31 @@ export function OnboardingPage() {
   return (
     <>
       <HeaderClock variant="fixed" />
-      <div className="gs-onboarding-shell gs-container max-w-lg pr-14 sm:pr-16">
-      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-gs-muted mb-8">
+      <div className="ta-onboarding-shell ta-container max-w-lg pr-14 sm:pr-16">
+      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ta-muted mb-8">
         Setup · local only, your device
       </p>
       <div className="flex gap-2 mb-10">
         {steps.map((label, i) => (
           <div
             key={label}
-            className={`flex-1 h-1 rounded-full transition-colors ${i <= step ? 'bg-gs-accent2' : 'bg-gs-border'}`}
+            className={`flex-1 h-1 rounded-full transition-colors ${i <= step ? 'bg-ta-accent2' : 'bg-ta-border'}`}
             title={label}
           />
         ))}
       </div>
 
       {step === 0 && (
-        <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
+        <section className="ta-glass-panel ta-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gs-text">Anchor & this term</h2>
-            <p className="text-gs-muted text-sm leading-relaxed">
+            <h2 className="text-2xl font-bold text-ta-text">Anchor & this term</h2>
+            <p className="text-ta-muted text-sm leading-relaxed">
               Pick any milestone that matters right now — graduation, end of semester, internship wrap,
               or a big exam. The term dates power your progress bar.
             </p>
           </div>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               Anchor label
             </span>
             <input
@@ -89,7 +109,7 @@ export function OnboardingPage() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               Anchor date
             </span>
             <input
@@ -98,12 +118,12 @@ export function OnboardingPage() {
               value={anchorDate}
               onChange={(e) => setAnchorDate(e.target.value)}
             />
-            <span className="text-xs text-gs-muted/90 font-sans leading-snug block mt-1">
+            <span className="text-xs text-ta-muted/90 font-sans leading-snug block mt-1">
               Choose the calendar day of that milestone so the countdown stays accurate.
             </span>
           </label>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               Term start
             </span>
             <input
@@ -114,7 +134,7 @@ export function OnboardingPage() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               Term end
             </span>
             <input
@@ -123,32 +143,45 @@ export function OnboardingPage() {
               value={semesterEnd}
               onChange={(e) => setSemesterEnd(e.target.value)}
             />
-            <span className="text-xs text-gs-muted/90 font-sans leading-snug block mt-1">
+            <span className="text-xs text-ta-muted/90 font-sans leading-snug block mt-1">
               Example: Use the first day of classes and the last day of finals for a full-term progress bar.
             </span>
           </label>
-          <button
-            type="button"
-            disabled={!step1Valid}
-            className="w-full py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-gs-accent text-gs-bg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-opacity shadow-[0_0_24px_-6px_rgba(232,255,71,0.55)]"
-            onClick={() => setStep(1)}
-          >
-            Continue
-          </button>
+          <div className="space-y-3">
+            <button
+              type="button"
+              disabled={!step1Valid}
+              className="w-full py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-ta-accent text-ta-bg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-opacity shadow-[0_0_24px_-6px_rgba(232,255,71,0.55)]"
+              onClick={() => setStep(1)}
+            >
+              Continue
+            </button>
+            <button
+              type="button"
+              className="w-full py-3 rounded-lg font-mono text-xs uppercase tracking-wider border border-ta-border text-ta-muted hover:text-ta-text hover:border-ta-muted transition-colors"
+              onClick={skipToPlannerOnly}
+            >
+              Skip — planner only
+            </button>
+            <p className="text-xs text-ta-muted/90 font-sans leading-snug text-center">
+              You can add anchor and term dates later in Settings. Countdown and term bar stay hidden
+              until those are set.
+            </p>
+          </div>
         </section>
       )}
 
       {step === 1 && (
-        <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
+        <section className="ta-glass-panel ta-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gs-text">Optional context</h2>
-            <p className="text-gs-muted text-sm leading-relaxed">
+            <h2 className="text-2xl font-bold text-ta-text">Optional context</h2>
+            <p className="text-ta-muted text-sm leading-relaxed">
               Skip anything you like. This stays on your device and helps future features (like commute
               planning) feel personal.
             </p>
           </div>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               What to call you (optional)
             </span>
             <input
@@ -159,7 +192,7 @@ export function OnboardingPage() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               Degree / focus (optional)
             </span>
             <input
@@ -170,7 +203,7 @@ export function OnboardingPage() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               Role or goal (optional)
             </span>
             <input
@@ -181,7 +214,7 @@ export function OnboardingPage() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               Typical commute (minutes, optional)
             </span>
             <input
@@ -192,12 +225,12 @@ export function OnboardingPage() {
               onChange={(e) => setCommuteMinutes(e.target.value)}
               placeholder="Example: 35"
             />
-            <span className="text-xs text-gs-muted/90 font-sans leading-snug block mt-1">
+            <span className="text-xs text-ta-muted/90 font-sans leading-snug block mt-1">
               Rough one-way minutes to campus or your main study spot; you can leave this blank.
             </span>
           </label>
           <label className="block space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">
+            <span className="font-mono text-xs uppercase tracking-wider text-ta-muted">
               Weekend / home notes (optional)
             </span>
             <textarea
@@ -210,14 +243,14 @@ export function OnboardingPage() {
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              className="flex-1 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider border border-gs-border text-gs-muted hover:text-gs-text hover:border-gs-muted transition-colors"
+              className="flex-1 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider border border-ta-border text-ta-muted hover:text-ta-text hover:border-ta-muted transition-colors"
               onClick={() => setStep(0)}
             >
               Back
             </button>
             <button
               type="button"
-              className="flex-1 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-gs-accent text-gs-bg hover:opacity-95 transition-opacity"
+              className="flex-1 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-ta-accent text-ta-bg hover:opacity-95 transition-opacity"
               onClick={() => setStep(2)}
             >
               Continue
@@ -227,33 +260,33 @@ export function OnboardingPage() {
       )}
 
       {step === 2 && (
-        <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
+        <section className="ta-glass-panel ta-glass-panel--tilt-none space-y-8 p-6 sm:p-7">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gs-text">You are set</h2>
-            <p className="text-gs-muted text-sm leading-relaxed">
+            <h2 className="text-2xl font-bold text-ta-text">You are set</h2>
+            <p className="text-ta-muted text-sm leading-relaxed">
               Data lives in your browser only. Use Settings anytime to export a backup JSON file.
             </p>
           </div>
-          <ul className="font-mono text-xs text-gs-muted space-y-3 gs-glass-input p-5 rounded-lg">
+          <ul className="font-mono text-xs text-ta-muted space-y-3 ta-glass-input p-5 rounded-lg">
             <li>
-              <span className="text-gs-accent">Anchor:</span> {anchorLabel} · {anchorDate || '—'}
+              <span className="text-ta-accent">Anchor:</span> {anchorLabel} · {anchorDate || '—'}
             </li>
             <li>
-              <span className="text-gs-accent2">Term:</span> {semesterStart || '—'} →{' '}
+              <span className="text-ta-accent2">Term:</span> {semesterStart || '—'} →{' '}
               {semesterEnd || '—'}
             </li>
           </ul>
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              className="flex-1 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider border border-gs-border text-gs-muted hover:text-gs-text transition-colors"
+              className="flex-1 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider border border-ta-border text-ta-muted hover:text-ta-text transition-colors"
               onClick={() => setStep(1)}
             >
               Back
             </button>
             <button
               type="button"
-              className="flex-1 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-gs-accent text-gs-bg hover:opacity-95 transition-opacity"
+              className="flex-1 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider bg-ta-accent text-ta-bg hover:opacity-95 transition-opacity"
               onClick={finish}
             >
               Open Today

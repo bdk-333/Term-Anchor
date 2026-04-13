@@ -66,20 +66,20 @@ function DayColumn({
 
   return (
     <div
-      className={`gs-glass-panel flex flex-col w-full h-full min-h-[280px] max-h-[min(68vh,520px)] p-3 ${
-        isToday ? 'ring-1 ring-gs-accent/35 shadow-[0_0_24px_-8px_rgba(232,255,71,0.25)]' : ''
+      className={`ta-glass-panel flex flex-col w-full h-full min-h-[280px] max-h-[min(68vh,520px)] p-3 ${
+        isToday ? 'ring-1 ring-ta-accent/35 shadow-[0_0_24px_-8px_rgba(232,255,71,0.25)]' : ''
       } ${compact ? 'min-h-[260px] max-h-[min(62vh,480px)]' : ''}`}
       data-day={dateKey}
     >
       <div className="shrink-0 mb-3">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">
+        <p className="font-mono text-[10px] uppercase tracking-wider text-ta-muted">
           {new Date(dateKey + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' })}
         </p>
-        <p className="font-mono text-lg font-bold text-gs-text drop-shadow-[0_0_12px_rgba(255,255,255,0.08)]">
+        <p className="font-mono text-lg font-bold text-ta-text drop-shadow-[0_0_12px_rgba(255,255,255,0.08)]">
           {new Date(dateKey + 'T12:00:00').getDate()}
         </p>
         {compact && (
-          <p className="font-mono text-[9px] text-gs-muted/90 mt-0.5">
+          <p className="font-mono text-[9px] text-ta-muted/90 mt-0.5">
             {new Date(dateKey + 'T12:00:00').toLocaleDateString(undefined, { month: 'short' })}
           </p>
         )}
@@ -89,7 +89,7 @@ function DayColumn({
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           <div
             ref={setNodeRef}
-            className="gs-scrollbar flex-1 min-h-[72px] overflow-y-auto overflow-x-hidden space-y-2 pr-1.5 pb-2 -mr-0.5"
+            className="ta-scrollbar flex-1 min-h-[72px] overflow-y-auto overflow-x-hidden space-y-2 pr-1.5 pb-2 -mr-0.5"
           >
             {items.map((t) => (
               <WeekSortableTaskRow
@@ -121,7 +121,7 @@ function DayColumn({
 
 function neonRangeBtn(active: boolean) {
   return [
-    'gs-glass-panel gs-glass-panel--tilt-none px-3 py-2 font-mono text-xs rounded-lg border transition-all',
+    'ta-glass-panel ta-glass-panel--tilt-none px-3 py-2 font-mono text-xs rounded-lg border transition-all',
     active
       ? 'text-[#39ff14] border-[#39ff14]/55 bg-[#39ff14]/[0.14] shadow-[0_0_26px_-6px_rgba(57,255,20,0.5)] ring-1 ring-[#39ff14]/40 font-semibold'
       : 'border-[#39ff14]/22 text-[#5cee5c] hover:border-[#39ff14]/48 hover:text-[#84ff84] hover:shadow-[0_0_20px_-8px_rgba(57,255,20,0.38)]',
@@ -341,12 +341,12 @@ export function WeekPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gs-text drop-shadow-[0_0_20px_rgba(255,255,255,0.06)]">
+          <h2 className="text-2xl font-bold text-ta-text drop-shadow-[0_0_20px_rgba(255,255,255,0.06)]">
             Month planner
           </h2>
-          <p className="font-mono text-[11px] text-gs-muted mt-1.5 max-w-xl leading-relaxed">
+          <p className="font-mono text-[11px] text-ta-muted mt-1.5 max-w-xl leading-relaxed">
             Tap a day for tasks and times. Colored lines are lanes. Week that contains today is outlined.
-            Days logged: <span className="text-gs-text/90">{daysLogged}</span>
+            Days logged: <span className="text-ta-text/90">{daysLogged}</span>
             {daysLogged > 0
               ? ' — open Before to revisit a saved day.'
               : ' — save a day on Today to build history.'}
@@ -371,10 +371,10 @@ export function WeekPage() {
       </div>
 
       <label className="block space-y-2 max-w-3xl">
-        <span className="font-mono text-xs uppercase tracking-widest text-gs-muted">
+        <span className="font-mono text-xs uppercase tracking-widest text-ta-muted">
           Week intention · top 3 things that matter
         </span>
-        <span className="font-mono text-[10px] text-gs-muted/90 block -mt-1">
+        <span className="font-mono text-[10px] text-ta-muted/90 block -mt-1">
           Applies to the week that contains the first of this calendar month ({weekDayKeys(intentWeekMonday)[0]}{' '}
           – {weekDayKeys(intentWeekMonday)[6]}).
         </span>
@@ -382,7 +382,7 @@ export function WeekPage() {
           value={weekIntent}
           onChange={(e) => setWeekIntent(e.target.value)}
           rows={2}
-          className="gs-glass-input w-full px-3 py-2.5 text-sm text-gs-text placeholder:text-gs-muted/80 font-sans leading-relaxed"
+          className="ta-glass-input w-full px-3 py-2.5 text-sm text-ta-text placeholder:text-ta-muted/80 font-sans leading-relaxed"
           placeholder="What matters most this week?"
         />
       </label>
@@ -413,23 +413,23 @@ export function WeekPage() {
               Before · all logged days
             </p>
             {loggedKeysDescending.length === 0 ? (
-              <p className="font-mono text-xs text-gs-muted">No saved days yet.</p>
+              <p className="font-mono text-xs text-ta-muted">No saved days yet.</p>
             ) : (
-              <div className="flex gap-2.5 items-stretch overflow-x-auto pb-3 gs-week-scroller min-h-0">
+              <div className="flex gap-2.5 items-stretch overflow-x-auto pb-3 ta-week-scroller min-h-0">
                 {loggedKeysDescending.map((k) => {
                   const d = new Date(`${k}T12:00:00`)
                   return (
                     <div
                       key={k}
-                      className="shrink-0 w-[min(44vw,168px)] sm:w-[172px] flex flex-col gs-glass-panel p-3 border border-[#39ff14]/15 shadow-[0_0_18px_-10px_rgba(57,255,20,0.25)]"
+                      className="shrink-0 w-[min(44vw,168px)] sm:w-[172px] flex flex-col ta-glass-panel p-3 border border-[#39ff14]/15 shadow-[0_0_18px_-10px_rgba(57,255,20,0.25)]"
                     >
-                      <p className="font-mono text-[10px] uppercase tracking-wider text-gs-muted">
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-ta-muted">
                         {d.toLocaleDateString(undefined, { weekday: 'short' })}
                       </p>
-                      <p className="font-mono text-xl font-bold text-gs-text leading-tight mt-1">
+                      <p className="font-mono text-xl font-bold text-ta-text leading-tight mt-1">
                         {d.getDate()}
                       </p>
-                      <p className="font-mono text-[9px] text-gs-muted/90 mt-0.5">
+                      <p className="font-mono text-[9px] text-ta-muted/90 mt-0.5">
                         {d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
                       </p>
                       <Link
@@ -451,7 +451,7 @@ export function WeekPage() {
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#5cee5c]">
               Beyond · next {BEYOND_DAY_COUNT} days after this month grid
             </p>
-            <div className="flex gap-2.5 items-stretch overflow-x-auto pb-3 gs-week-scroller min-h-0">
+            <div className="flex gap-2.5 items-stretch overflow-x-auto pb-3 ta-week-scroller min-h-0">
               {beyondKeys.map((dateKey) => {
                 const items = state.tasksByDay[dateKey]?.items ?? []
                 return (
@@ -479,7 +479,7 @@ export function WeekPage() {
 
         <DragOverlay>
           {activeTask ? (
-            <div className="rounded-md border border-gs-accent/50 bg-gs-surface/95 px-3 py-2 text-sm text-gs-text shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-[220px]">
+            <div className="rounded-md border border-ta-accent/50 bg-ta-surface/95 px-3 py-2 text-sm text-ta-text shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-[220px]">
               {activeTask.text}
             </div>
           ) : null}
@@ -502,9 +502,9 @@ export function WeekPage() {
         ) : null}
       </DndContext>
 
-      <p className="font-mono text-[10px] text-gs-muted leading-relaxed">
+      <p className="font-mono text-[10px] text-ta-muted leading-relaxed">
         Drag tasks between days on the calendar, in the day window, or onto Beyond columns. Optional{' '}
-        <span className="text-gs-text/85">When</span> times compare to your clock when you mark done (±5 min).{' '}
+        <span className="text-ta-text/85">When</span> times compare to your clock when you mark done (±5 min).{' '}
         <strong className="text-[#6dff6d]">Before</strong> lists saved days;{' '}
         <strong className="text-[#6dff6d]">Beyond</strong> extends after the month grid.
       </p>

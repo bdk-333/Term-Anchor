@@ -2,25 +2,36 @@
 setlocal
 cd /d "%~dp0"
 
-if not exist "dist\index.html" (
+where node >nul 2>&1
+if errorlevel 1 (
   echo.
-  echo  No dist folder yet. One-time setup: open a terminal here and run:
-  echo    npm install
-  echo    npm run build
-  echo  Then double-click this file again.
+  echo  Node.js is not installed or not on PATH.
+  echo  Install from https://nodejs.org/ ^(LTS 18 or newer^), then try again.
   echo.
   pause
   exit /b 1
 )
 
-where node >nul 2>&1
-if errorlevel 1 (
+if not exist "node_modules\" (
   echo.
-  echo  Node.js is not installed or not on PATH.
-  echo  Install from https://nodejs.org/ ^(LTS^), then try again.
+  echo  First run: installing dependencies...
+  call npm install
+  if errorlevel 1 (
+    echo npm install failed.
+    pause
+    exit /b 1
+  )
+)
+
+if not exist "dist\index.html" (
   echo.
-  pause
-  exit /b 1
+  echo  First run: building production bundle...
+  call npm run build
+  if errorlevel 1 (
+    echo npm run build failed.
+    pause
+    exit /b 1
+  )
 )
 
 echo Starting Term Anchor...

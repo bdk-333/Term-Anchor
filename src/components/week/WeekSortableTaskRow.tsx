@@ -44,7 +44,7 @@ export function WeekSortableTaskRow({
       ref={setNodeRef}
       style={style}
       className={[
-        'group flex items-start gap-2 rounded-md border px-2 py-2 text-sm text-gs-text shadow-[0_2px_12px_rgba(0,0,0,0.25)] backdrop-blur-sm',
+        'group flex items-start gap-2 rounded-md border px-2 py-2 text-sm text-ta-text shadow-[0_2px_12px_rgba(0,0,0,0.25)] backdrop-blur-sm',
         task.done && task.doneTimeMismatch
           ? 'border-amber-400/50 bg-amber-500/[0.08]'
           : 'border-white/10 bg-black/25',
@@ -52,7 +52,7 @@ export function WeekSortableTaskRow({
     >
       <button
         type="button"
-        className="cursor-grab active:cursor-grabbing font-mono text-gs-muted touch-none px-1 shrink-0"
+        className="cursor-grab active:cursor-grabbing font-mono text-ta-muted touch-none px-1 shrink-0"
         {...attributes}
         {...listeners}
         aria-label="Drag task"
@@ -64,21 +64,21 @@ export function WeekSortableTaskRow({
         onClick={() => onToggle(task.id)}
         className={`mt-0.5 w-4 h-4 shrink-0 rounded border font-mono text-[10px] leading-4 ${
           task.done
-            ? 'bg-gs-success border-gs-success text-gs-bg'
-            : 'border-gs-muted bg-gs-surface-muted/50'
+            ? 'bg-ta-success border-ta-success text-ta-bg'
+            : 'border-ta-muted bg-ta-surface-muted/50'
         }`}
         aria-label={task.done ? 'Mark incomplete' : 'Mark done'}
       >
         {task.done ? '✓' : ''}
       </button>
-      <div className={`flex-1 min-w-0 ${task.done ? 'text-gs-muted' : ''}`}>
+      <div className={`flex-1 min-w-0 ${task.done ? 'text-ta-muted' : ''}`}>
         {plannedLabel ? (
           <p className="font-mono text-[9px] text-sky-300/90 leading-tight mb-0.5">{plannedLabel}</p>
         ) : null}
         <p className={task.done ? 'line-through' : ''}>{task.text}</p>
-        <p className="font-mono text-[10px] text-gs-accent/80 mt-0.5">{categoryLabel}</p>
+        <p className="font-mono text-[10px] text-ta-accent/80 mt-0.5">{categoryLabel}</p>
         {task.done && task.completedAt ? (
-          <p className="font-mono text-[9px] text-gs-muted/90 mt-1">
+          <p className="font-mono text-[9px] text-ta-muted/90 mt-1">
             Done at{' '}
             {new Date(task.completedAt).toLocaleTimeString(undefined, {
               hour: 'numeric',
@@ -100,7 +100,7 @@ export function WeekSortableTaskRow({
         {showTimerStart && timeApiOk === true && !task.done ? (
           <button
             type="button"
-            className="mt-1.5 font-mono text-[9px] uppercase tracking-wider px-2 py-1 rounded border border-gs-accent/40 text-gs-accent hover:bg-gs-accent/10"
+            className="mt-1.5 font-mono text-[9px] uppercase tracking-wider px-2 py-1 rounded border border-ta-accent/40 text-ta-accent hover:bg-ta-accent/10"
             onClick={() => navigate(`/?startPlannerTask=${encodeURIComponent(task.id)}`)}
           >
             Start timer
@@ -109,7 +109,7 @@ export function WeekSortableTaskRow({
       </div>
       <button
         type="button"
-        className="opacity-0 group-hover:opacity-100 text-gs-muted hover:text-gs-danger font-mono text-xs shrink-0"
+        className="opacity-0 group-hover:opacity-100 text-ta-muted hover:text-ta-danger font-mono text-xs shrink-0"
         onClick={() => onRemove(task.id)}
         aria-label="Remove task"
       >
@@ -174,7 +174,7 @@ export function WeekAddTaskForm({
         value={cat}
         onChange={(e) => setCat(e.target.value)}
         aria-label="Lane for new task"
-        className="gs-native-select"
+        className="ta-native-select"
       >
         {Array.from(categoryLabels.entries()).map(([id, label]) => (
           <option key={id} value={id}>
@@ -185,31 +185,31 @@ export function WeekAddTaskForm({
       <input
         name="t"
         placeholder={`Add on ${dateLabel}…`}
-        className="gs-glass-input px-3 py-2.5 font-mono text-sm text-gs-text placeholder:text-gs-muted/80 rounded-full border border-white/12"
+        className="ta-glass-input px-3 py-2.5 font-mono text-sm text-ta-text placeholder:text-ta-muted/80 rounded-full border border-white/12"
       />
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[9px] text-gs-muted uppercase shrink-0">When</span>
+        <span className="font-mono text-[9px] text-ta-muted uppercase shrink-0">When</span>
         <input
           type="time"
           name="planStart"
           aria-label="Planned start"
-          className="gs-glass-input w-[6.5rem] px-2 py-1.5 font-mono text-xs text-gs-text"
+          className="ta-glass-input w-[6.5rem] px-2 py-1.5 font-mono text-xs text-ta-text"
         />
-        <label className="flex items-center gap-1 font-mono text-[9px] text-gs-muted">
-          <input type="checkbox" name="planHasEnd" className="rounded border-gs-border" />
+        <label className="flex items-center gap-1 font-mono text-[9px] text-ta-muted">
+          <input type="checkbox" name="planHasEnd" className="rounded border-ta-border" />
           End
         </label>
         <input
           type="time"
           name="planEnd"
           aria-label="Planned end"
-          className="gs-glass-input w-[6.5rem] px-2 py-1.5 font-mono text-xs text-gs-text"
+          className="ta-glass-input w-[6.5rem] px-2 py-1.5 font-mono text-xs text-ta-text"
         />
       </div>
       <div className="flex justify-end">
         <button
           type="submit"
-          className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-full border border-gs-accent/40 text-gs-accent hover:bg-gs-accent/10"
+          className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-full border border-ta-accent/40 text-ta-accent hover:bg-ta-accent/10"
         >
           {submitLabel ?? 'Add'}
         </button>

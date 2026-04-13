@@ -78,15 +78,15 @@ export function WeekDayModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative w-full sm:max-w-lg max-h-[min(92vh,640px)] sm:rounded-2xl border border-white/[0.12] bg-gs-surface/98 shadow-[0_24px_80px_rgba(0,0,0,0.55)] flex flex-col outline-none sm:mx-4"
+        className="relative w-full sm:max-w-lg max-h-[min(92vh,640px)] sm:rounded-2xl border border-white/[0.12] bg-ta-surface/98 shadow-[0_24px_80px_rgba(0,0,0,0.55)] flex flex-col outline-none sm:mx-4"
       >
         <div className="shrink-0 flex items-start justify-between gap-3 px-4 sm:px-5 pt-4 pb-3 border-b border-white/[0.08]">
           <div>
-            <p id={titleId} className="text-2xl sm:text-3xl font-bold text-gs-text tracking-tight">
+            <p id={titleId} className="text-2xl sm:text-3xl font-bold text-ta-text tracking-tight">
               <span className="font-mono tabular-nums">{dayNum}</span>{' '}
               <span className="font-sans font-semibold">{weekday}</span>
             </p>
-            <p className="font-mono text-[11px] text-gs-muted mt-1">
+            <p className="font-mono text-[11px] text-ta-muted mt-1">
               {format(d, 'MMMM d, yyyy')}
               {dateKey === todayKey ? ' · Today' : ''}
             </p>
@@ -94,7 +94,7 @@ export function WeekDayModal({
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 font-mono text-lg leading-none text-gs-muted hover:text-gs-text px-2 py-1 rounded-md border border-transparent hover:border-white/15"
+            className="shrink-0 font-mono text-lg leading-none text-ta-muted hover:text-ta-text px-2 py-1 rounded-md border border-transparent hover:border-white/15"
             aria-label="Close"
           >
             ×
@@ -105,10 +105,10 @@ export function WeekDayModal({
           <SortableContext items={ids} strategy={verticalListSortingStrategy}>
             <div
               ref={setNodeRef}
-              className="gs-scrollbar flex-1 min-h-[120px] overflow-y-auto space-y-2 pr-1 py-2 -mr-0.5"
+              className="ta-scrollbar flex-1 min-h-[120px] overflow-y-auto space-y-2 pr-1 py-2 -mr-0.5"
             >
               {items.length === 0 ? (
-                <p className="font-mono text-sm text-gs-muted py-6 text-center">No tasks yet.</p>
+                <p className="font-mono text-sm text-ta-muted py-6 text-center">No tasks yet.</p>
               ) : (
                 items.map((t) => (
                   <WeekSortableTaskRow
