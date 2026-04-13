@@ -21,8 +21,9 @@ info/
 # Separate time-tracker project (integration planned; not part of Term Anchor repo)
 Time-Tracking-App/
 
-# Local chat / session archives (not published)
+# Local chat / session archives (not part of the distributed app)
 CHAT_ARCHIVE_grad-sprint.md
+CHAT_HISTORY.md
 
 # Logs
 *.log
