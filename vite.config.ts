@@ -7,8 +7,8 @@ import react from '@vitejs/plugin-react'
 import type { Connect } from 'vite'
 import { defineConfig, type Plugin } from 'vite'
 
-// GitHub Pages project sites need /<repo>/; override with VITE_BASE in CI or .env
-const base = process.env.VITE_BASE ?? '/'
+/** App is served from the root path by `npm run dev` and `scripts/term-anchor-server.mjs`. */
+const base = '/'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.resolve(__dirname, 'data')

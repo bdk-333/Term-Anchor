@@ -2,20 +2,31 @@
 
 A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, **month planner** on Week (lane-colored day tiles, day-detail modal), habits, streaks, a **contribution-style streak heatmap** on Today, **sectioned daily log** (Cornell / outline / boxed notes, attachments), and **integrated time tracking** (lanes → projects → tasks, timer, today’s totals).
 
+**Distribution:** this repo is meant to be **cloned or downloaded and run on your machine** with Node.js (see **Quick start** below). There is **no** GitHub Pages / static-only build path for the full app: time tracking and disk-backed planner state require the included local server.
+
+## Quick start (new machine)
+
+1. Install **[Node.js](https://nodejs.org/) LTS** — use **v22.5 or newer** (required for built-in SQLite `node:sqlite` used by time tracking).
+2. Clone or download this repository and open a terminal **in the project folder**.
+3. Run **`npm install`** once.
+4. Run **`npm run build`** once (creates **`dist/`**).
+5. **Windows:** double-click **`Start-TermAnchor.cmd`** (or run **`npm start`**). Your browser should open **http://127.0.0.1:8787/**.
+6. **macOS / Linux:** run **`npm start`**, then open **http://127.0.0.1:8787/** in a browser (or use **`start-grad-sprint.command`** on macOS after `chmod +x`). Optional port: set **`TERM_ANCHOR_PORT`** (see **`.env.example`**).
+7. Complete **onboarding** the first time you open the app. After that, use **step 5–6** whenever you want to run Term Anchor.
+
+Your data lives next to the project under **`data/`** (see below). Use **Settings → Export JSON** for backups.
+
 ## Where your data lives
 
 - **Local server (recommended):** Run the app with **`Start-TermAnchor.cmd`** (Windows) or **`npm start`** after a build. Your progress is saved in **`data/term-anchor-state.json`** next to the project. The app is served at **http://127.0.0.1:8787/** so **Edge, Brave, Chrome, or any browser** can use the **same file**—switch browsers without starting over. You do not need PowerShell as Administrator.
-- **Time tracking (local server only):** When you use **`npm run dev`** or **`npm start`**, the **Today** page talks to **`/api/time/*`** (timer, projects, tasks, totals). Data is stored in **`data/time-tracking.db`** (SQLite via Node’s built-in **`node:sqlite`**). There is no separate time app to run; static hosting or opening `dist/index.html` without the Node server **cannot** persist timer data. **Backup:** copy **`data/time-tracking.db`** if you want to archive time entries; **Settings → Export JSON** does not include the SQLite file.
-- **Static hosting / no server:** Planner data stays in the browser (`localStorage`). The time section on **Today** shows a short message that the API is unavailable. Use **Settings → Export JSON** for planner backups.
+- **Time tracking (local server only):** When you use **`npm run dev`** or **`npm start`**, the **Today** page talks to **`/api/time/*`** (timer, projects, tasks, totals). Data is stored in **`data/time-tracking.db`** (SQLite via Node’s built-in **`node:sqlite`**). Opening **`dist/index.html` directly** or using plain static hosting **does not** run those APIs. **Backup:** copy **`data/time-tracking.db`** if you want to archive time entries; **Settings → Export JSON** does not include the SQLite file.
+- **Browser-only fallback:** If you open a build **without** the Node server, planner data may stay in **`localStorage`** only; the time section on **Today** shows that the API is unavailable. For the intended experience, always use **`npm start`** or **`Start-TermAnchor.cmd`** after **`npm run build`**.
 
 ## Easiest way to run (Windows)
 
-1. One-time: install [Node.js](https://nodejs.org/) (LTS).
-2. One-time in this folder: `npm install` then `npm run build`.
-3. Double-click **`Start-TermAnchor.cmd`**. Your default browser opens the app. Leave the window open while you use Term Anchor; closing it stops the server.
-4. **Pick a specific browser:** start with the `.cmd` as above, then right‑click **`Open-Term-Anchor.url`** → **Open with** → choose Brave, Firefox, etc. (The server must already be running.)
+After the one-time **Quick start** steps: double-click **`Start-TermAnchor.cmd`**, keep the window open while you use Term Anchor (closing it stops the server). **Pick a specific browser:** right‑click **`Open-Term-Anchor.url`** → **Open with** → Brave, Firefox, etc. (the server must already be running).
 
-Change the port with the environment variable **`TERM_ANCHOR_PORT`** (default `8787`). If you change it, edit the URL inside `Open-Term-Anchor.url` to match.
+Change the port with **`TERM_ANCHOR_PORT`** (default `8787`); if you change it, edit the URL inside **`Open-Term-Anchor.url`** to match (see **`.env.example`**).
 
 ## Develop locally
 
@@ -64,7 +75,7 @@ Open **Settings** in the app → **Export JSON** / **Import JSON**. Import repla
 
 ## Change log (high level)
 
-See **`CHAT_HISTORY.md`** in this repo for merge notes and decisions (not a substitute for `git log`).
+Use **`git log`** for full history. Maintainers may keep a private handoff log as **`CHAT_HISTORY.md`** locally (gitignored in this repo).
 
 ## Tech stack
 

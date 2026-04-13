@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppState } from '@/context/AppStateContext'
 import { downloadBackup, importStateJson } from '@/lib/storage'
@@ -10,13 +10,105 @@ import {
   MIN_HABITS,
 } from '@/lib/types'
 
+type GoalDraft = {
+  anchorLabel: string
+  anchorDate: string
+  semesterStart: string
+  semesterEnd: string
+}
+
 export function SettingsPage() {
   const { state, setState, persistenceBackend } = useAppState()
   const fileRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
+  const [goalDraft, setGoalDraft] = useState<GoalDraft>(() => ({
+    anchorLabel: state.profile.anchorLabel,
+    anchorDate: state.profile.anchorDate,
+    semesterStart: state.profile.semesterStart,
+    semesterEnd: state.profile.semesterEnd,
+  }))
+  const [goalError, setGoalError] = useState<string | null>(null)
+  const [goalSavedMsg, setGoalSavedMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    setGoalDraft({
+      anchorLabel: state.profile.anchorLabel,
+      anchorDate: state.profile.anchorDate,
+      semesterStart: state.profile.semesterStart,
+      semesterEnd: state.profile.semesterEnd,
+    })
+  }, [
+    state.profile.anchorLabel,
+    state.profile.anchorDate,
+    state.profile.semesterStart,
+    state.profile.semesterEnd,
+  ])
 
   if (!state.profile.onboardingComplete) {
     return <Navigate to="/onboarding" replace />
+  }
+
+  function discardGoalDraft() {
+    setGoalError(null)
+    setGoalSavedMsg(null)
+    setGoalDraft({
+      anchorLabel: state.profile.anchorLabel,
+      anchorDate: state.profile.anchorDate,
+      semesterStart: state.profile.semesterStart,
+      semesterEnd: state.profile.semesterEnd,
+    })
+  }
+
+  function saveGoal() {
+    setGoalSavedMsg(null)
+    const { semesterStart, semesterEnd } = goalDraft
+    if ((semesterStart && !semesterEnd) || (!semesterStart && semesterEnd)) {
+      setGoalError('Set both term start and end, or leave both empty.')
+      return
+    }
+    if (semesterStart && semesterEnd && semesterStart > semesterEnd) {
+      setGoalError('Term end must be on or after term start.')
+      return
+    }
+    setGoalError(null)
+    setState((s) => ({
+      ...s,
+      profile: {
+        ...s.profile,
+        anchorLabel: goalDraft.anchorLabel.trim(),
+        anchorDate: goalDraft.anchorDate,
+        semesterStart: goalDraft.semesterStart,
+        semesterEnd: goalDraft.semesterEnd,
+      },
+    }))
+    setGoalSavedMsg('Saved.')
+    window.setTimeout(() => setGoalSavedMsg(null), 2500)
+  }
+
+  function clearGoalAndTerm() {
+    if (
+      !window.confirm(
+        'Clear anchor label, anchor date, and term dates? Your tasks, logs, and habits stay; the home countdown and term bar will be empty until you set a new goal.',
+      )
+    ) {
+      return
+    }
+    setGoalError(null)
+    setGoalSavedMsg(null)
+    const empty: GoalDraft = {
+      anchorLabel: '',
+      anchorDate: '',
+      semesterStart: '',
+      semesterEnd: '',
+    }
+    setGoalDraft(empty)
+    setState((s) => ({
+      ...s,
+      profile: {
+        ...s.profile,
+        ...empty,
+      },
+    }))
   }
 
   function updateCategory(id: string, label: string) {
@@ -104,9 +196,92 @@ export function SettingsPage() {
     reader.readAsText(f)
   }
 
+  const inputClass =
+    'gs-glass-input w-full px-3 py-2.5 font-mono text-sm text-gs-text placeholder:text-gs-muted/70'
+
   return (
     <div className="max-w-2xl space-y-12 text-gs-text">
       <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+
+      <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
+        <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Goal & term</h3>
+        <p className="text-sm text-gs-muted leading-relaxed">
+          Change your milestone and term window anytime — graduation, a new internship, next semester, or
+          nothing at all. Clearing dates only affects the countdown and term progress on Today; the rest of
+          your data is unchanged.
+        </p>
+        <label className="block space-y-2">
+          <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">Anchor label</span>
+          <input
+            className={inputClass}
+            value={goalDraft.anchorLabel}
+            onChange={(e) => setGoalDraft((d) => ({ ...d, anchorLabel: e.target.value }))}
+            placeholder="e.g. Graduation, internship end, board exam"
+          />
+        </label>
+        <label className="block space-y-2">
+          <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">Anchor date</span>
+          <input
+            type="date"
+            className={inputClass}
+            value={goalDraft.anchorDate}
+            onChange={(e) => setGoalDraft((d) => ({ ...d, anchorDate: e.target.value }))}
+          />
+          <span className="text-xs text-gs-muted/90 font-sans leading-snug">
+            Leave empty to hide the day countdown on Today.
+          </span>
+        </label>
+        <label className="block space-y-2">
+          <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">Term start</span>
+          <input
+            type="date"
+            className={inputClass}
+            value={goalDraft.semesterStart}
+            onChange={(e) => setGoalDraft((d) => ({ ...d, semesterStart: e.target.value }))}
+          />
+        </label>
+        <label className="block space-y-2">
+          <span className="font-mono text-xs uppercase tracking-wider text-gs-muted">Term end</span>
+          <input
+            type="date"
+            className={inputClass}
+            value={goalDraft.semesterEnd}
+            onChange={(e) => setGoalDraft((d) => ({ ...d, semesterEnd: e.target.value }))}
+          />
+          <span className="text-xs text-gs-muted/90 font-sans leading-snug">
+            Set both dates for the term progress bar, or clear both to hide it.
+          </span>
+        </label>
+        {goalError ? <p className="text-sm text-gs-danger font-mono">{goalError}</p> : null}
+        {goalSavedMsg ? (
+          <p className="text-sm text-gs-success font-mono" role="status">
+            {goalSavedMsg}
+          </p>
+        ) : null}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <button
+            type="button"
+            onClick={saveGoal}
+            className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md bg-gs-accent text-gs-bg shadow-[0_0_20px_-6px_rgba(232,255,71,0.45)] hover:shadow-[0_0_28px_-4px_rgba(232,255,71,0.55)] transition-shadow"
+          >
+            Save goal
+          </button>
+          <button
+            type="button"
+            onClick={discardGoalDraft}
+            className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md border border-white/12 text-gs-muted hover:border-white/25 hover:text-gs-text transition-colors"
+          >
+            Discard changes
+          </button>
+          <button
+            type="button"
+            onClick={clearGoalAndTerm}
+            className="font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md border border-gs-danger/40 text-gs-danger hover:bg-gs-danger/10 transition-colors"
+          >
+            Clear goal & term
+          </button>
+        </div>
+      </section>
 
       <section className="gs-glass-panel gs-glass-panel--tilt-none space-y-4 p-5 sm:p-6">
         <h3 className="font-mono text-xs uppercase tracking-widest text-gs-muted">Task lanes</h3>

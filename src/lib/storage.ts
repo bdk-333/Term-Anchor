@@ -203,7 +203,7 @@ export function migrate(raw: unknown): AppState {
   return state as AppState
 }
 
-/** Browser-only storage (GitHub Pages, file://, or fallback when the local server is down). */
+/** Browser-only storage (`localStorage`) when the Term Anchor server is not used or unreachable. */
 export function loadBrowserState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
