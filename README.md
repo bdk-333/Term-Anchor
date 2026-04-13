@@ -1,49 +1,63 @@
 # Term Anchor
 
-A local-first daily command center for students: anchor countdown, term progress, renameable task lanes, **month planner** on Week (lane-colored day tiles, day-detail modal), habits, streaks, a **contribution-style streak heatmap** on Today, **sectioned daily log** (Cornell / outline / boxed notes, attachments), and **integrated time tracking** (lanes → projects → tasks, timer, today’s totals).
+> **A local-first daily command center for students.**
+> Track tasks, time, habits, and your whole term — all on your own machine. No accounts. No cloud. No subscription.
 
-## Where your data lives
+![Term Anchor — Today](screenshots/home1.png)
 
-- **Local server (recommended):** Run the app with **`Start-TermAnchor.cmd`** (Windows), **`Start-TermAnchor.ps1`**, or **`npm start`** after a build. Your progress is saved in **`data/term-anchor-state.json`** next to the project. The app is served at **http://127.0.0.1:8787/** so **Edge, Brave, Chrome, or any browser** can use the **same file**—switch browsers without starting over. You do not need PowerShell as Administrator.
-- **Time tracking (local server only):** When you use **`npm run dev`** or **`npm start`**, the **Today** page talks to **`/api/time/*`** (timer, projects, tasks, totals). Data is stored in **`data/time-tracking.db`** (SQLite via **`sql.js`**, WASM — no native compiler required). There is no separate time app to run; static hosting or opening `dist/index.html` without the Node server **cannot** persist timer data. **Backup:** copy **`data/time-tracking.db`** if you want to archive time entries; **Settings → Export JSON** does not include the SQLite file.
-- **Static hosting / no server:** Planner data stays in the browser (`localStorage`). The time section on **Today** explains that the timer API needs the Node server. Use **Settings → Export JSON** for planner backups.
+---
 
-## Requirements
+## What is Term Anchor?
 
-- **Node.js 18+** (LTS recommended). Time tracking uses **`sql.js`** (SQLite in WebAssembly), so **`npm install`** does not require Python, Visual Studio, or other native build chains for the timer database.
+Term Anchor is a personal productivity web app built for students juggling coursework, projects, and everything in between. It gives you one place to plan your week, track your time, build habits, and log your day — and everything stays on your computer.
 
-## Easiest way to run (Windows)
+**Why local-first?** Your data is yours. It lives in a file next to the app, not on someone else's server. You can back it up, move it, or delete it whenever you want.
 
-1. Install [Node.js](https://nodejs.org/) (LTS 18+).
-2. Double-click **`Start-TermAnchor.cmd`**. On first use it runs **`npm install`** and **`npm run build`** automatically, then starts the server.
-3. Your default browser opens the app. Leave the window open while you use Term Anchor; closing it stops the server.
-4. **Pick a specific browser:** start with the `.cmd` as above, then right‑click **`Open-Term-Anchor.url`** → **Open with** → choose Brave, Firefox, etc. (The server must already be running.)
+---
 
-Change the port with the environment variable **`TERM_ANCHOR_PORT`** (default `8787`). If you change it, edit the URL inside `Open-Term-Anchor.url` to match.
+## Getting Started
 
-## Develop locally
+> **Requirement:** [Node.js 18+](https://nodejs.org/) (LTS recommended). That's the only thing you need to install.
+
+### Windows
+
+1. Install [Node.js](https://nodejs.org/) if you haven't already
+2. Clone or download this repo
+3. Double-click **`Start-TermAnchor.cmd`**
+
+That's it. On first run it automatically installs dependencies and builds the app, then opens it in your browser. Leave the terminal window open while you use the app.
+
+> **Want a specific browser?** After the server is running, right-click **`Open-Term-Anchor.url`** → Open with → pick your browser.
+
+---
+
+### macOS
+
+1. Install [Node.js](https://nodejs.org/) if you haven't already
+2. Clone or download this repo
+3. Open Terminal in the project folder and run:
 
 ```bash
-npm install
-npm run dev
+chmod +x start-term-anchor.command
 ```
 
-`npm run dev` uses the same **`data/term-anchor-state.json`** API as the production local server, and the same **`/api/time/*`** endpoints as **`npm start`**, so dev and “double-click” runs share planner state and the time database when you use the same project folder.
+4. Double-click **`start-term-anchor.command`**
 
-## Tests
+Your default browser will open the app after a few seconds.
+
+---
+
+### Linux (or manual setup on any OS)
+
+1. Install [Node.js](https://nodejs.org/) if you haven't already
+2. Clone the repo:
 
 ```bash
-npm test
+git clone https://github.com/bdk-333/Term-Anchor.git
+cd Term-Anchor
 ```
 
-Vitest runs a small suite over **`migrate`**, streak helpers, and related **`src/lib`** logic.
-
-## Other launchers
-
-- **PowerShell:** `.\Start-TermAnchor.ps1` (first-run install + build if needed, then server + browser).
-- **macOS:** `chmod +x start-term-anchor.command`, then double-click it (opens default browser after a short delay).
-
-## Production build
+3. Install and build:
 
 ```bash
 npm install
@@ -51,57 +65,115 @@ npm run build
 npm start
 ```
 
-Static output is in **`dist/`**. The Node script **`scripts/term-anchor-server.mjs`** serves `dist/` and reads/writes **`data/term-anchor-state.json`**, and handles **`/api/time/*`** for the Today page timer (SQLite under **`scripts/time-tracker/`**).
+4. Open your browser and go to **http://127.0.0.1:8787/**
+
+---
+
+### Development mode
+
+If you want to run with hot reload (changes reflect instantly):
+
+```bash
+npm install
+npm run dev
+```
+
+---
 
 ## Screenshots
 
-| File | Page |
-| ---- | ---- |
-| **`screenshots/home.png`** | Today (home) — lanes, streak, heatmap, time |
-| **`screenshots/week.png`** | Week — month grid, lane bars |
-| **`screenshots/settings.png`** | Settings — backup, goals, lanes |
+| Today — Home | Week — Month Planner |
+|---|---|
+| ![Today](screenshots/home1.png) | ![Week](screenshots/week.png) |
 
-![Term Anchor — Today (home)](screenshots/home1.png)
+![Today — Time Tracking](screenshots/home2.png)
+![Today — Task Lanes](screenshots/home3.png)
+![Settings](screenshots/settings.png)
 
-![Term Anchor — Today (home)](screenshots/home2.png)
+---
 
-![Term Anchor — Today (home)](screenshots/home3.png)
+## Features
 
-![Term Anchor — Today (home)](screenshots/home4.png)
+### Today (Home)
+Your daily hub. Everything you need for the current day in one scrollable view.
 
-![Term Anchor — Week](screenshots/week.png)
+- **Countdown** to your anchor date (graduation, internship, next semester — whatever matters to you)
+- **Term progress bar** showing how far through the term you are
+- **Streak heatmap** — a five-month contribution-style grid (like GitHub's activity graph) showing tasks completed per day, on an orange intensity scale
+- **Habits** — daily checkboxes you define in Settings (moved my body, drank enough water, etc.)
+- **Task lanes** — renameable categories (Practice, Build, Learn, Course, etc.) with tasks you can add, check off, and time
+- **Time tracking** — a live timer tied to your lanes and tasks, with daily totals stored in a local SQLite database
+- **Today's intention** — a free-text focus statement for the day
+- **Daily log** — sectioned notes with three modes: Cornell, outline, or boxed. Supports drag reorder and file attachments
 
-![Term Anchor — Settings](screenshots/settings.png)
+---
 
+### Week (Month Planner)
+A Monday-start monthly calendar that shows your task load at a glance.
 
-## Time tracking on Today
+- **Lane-colored bars** on each day show which categories have tasks scheduled
+- **Tap any day** to open a detail modal — see all tasks, add new ones with optional times, and drag tasks between days
+- **Week intention** — a top-3 priorities note for the week
+- **Before** — revisit saved past days
+- **Beyond** — plan days beyond the current month grid
 
-On **Today** (home), use **Start timer** on a lane task or open the **Time tracking** section. Model: **lane** (same names as your planner lanes, plus **Others**) → optional **projects** (each project lives in one lane) → **tasks** (most tasks have **no project** and roll up to the Others lane; you can attach a project when needed). The UI lists **tasks** before **projects**; create a project with a lane, then pick it from the task **Project** dropdown (all projects are listed). **Start** an ad-hoc or linked task, then **Pause**, **Resume**, and **Stop**. Starting another task stops the previous one at the current minute. **Tracked time today** shows minute-level totals for the local calendar day. Old links to **`/time`** redirect to **`/`**.
+---
 
-## Week — month planner
+### Settings
+Customize everything without touching code.
 
-The **Week** tab shows a **Monday-start month calendar** for the month you’re viewing (prev / next / Today). Each day shows small **lane-colored bars** for tasks that day; **today** and the **week that contains today** are highlighted. **Tap a day** to open a **modal**: full task list, optional planned times, drag tasks between days, and add tasks with lane + time. **Week intention** applies to the week that contains the **1st** of the visible calendar month. **Before** lists saved days; **Beyond** adds a horizontal strip of days **after** that month’s grid (same task controls).
+- Set or change your **anchor date and term window** at any time
+- **Add, rename, or remove task lanes** (2–8 lanes supported)
+- **Add or remove habits**
+- **Export / Import JSON** to back up and restore your planner data
 
-## Today — streak heatmap
+> For a full backup including time tracking, also copy `data/time-tracking.db`.
 
-Under the fire **streak** count and 7-day “saved” pips, a **five-month contribution-style grid** shows **tasks marked done** per day on an **orange** intensity scale (**0–5**, where **5** means five or more). Blocks are **separate cards** per calendar month: **two months before**, **current month (center)**, **two months after** (Sunday-first columns within each block, like a compact GitHub / LeetCode graph). Padding days outside each labeled month appear as neutral tiles.
+---
 
-## Onboarding
+## Where Your Data Lives
 
-First launch asks for **anchor** and **term** dates. You can use **Skip — planner only** to go straight to tasks and logs; add dates later under **Settings** (countdown and term bar stay off until both anchor and term fields are set).
+| Data | Location | Notes |
+|---|---|---|
+| Planner (tasks, habits, logs) | `data/term-anchor-state.json` | Shared across all browsers at the same address |
+| Time tracking | `data/time-tracking.db` | SQLite via sql.js (WASM) — no native compiler needed |
+| Static fallback | Browser `localStorage` | Used only if running without the Node server |
 
-## Daily log and notes (Today)
+---
 
-The **daily log** supports multiple sections, drag reorder, and per-section **note mode**: **Cornell**, **outline**, or **boxed**. You can attach files where the UI allows. Layout is tuned for wider reading and editing on large screens.
+## Tech Stack
 
-## Backup and restore
+| | |
+|---|---|
+| **Frontend** | React, TypeScript, Vite, Tailwind CSS v4 |
+| **Routing** | React Router |
+| **Drag & Drop** | @dnd-kit |
+| **Dates** | date-fns |
+| **Database** | SQLite via sql.js (WebAssembly) |
+| **Server** | Node.js (custom, no framework) |
+| **Tests** | Vitest |
+| **Built with** | Cursor + Claude Sonnet |
 
-Open **Settings** in the app → **Export JSON** / **Import JSON**. Import replaces the current saved state (the disk file when using the local server, otherwise the browser copy). For a **full** local backup including time tracking, also copy **`data/time-tracking.db`**.
+---
 
-## Tech stack
+## Running Tests
 
-Vite, React, TypeScript, Tailwind CSS v4, React Router, date-fns, @dnd-kit. Local APIs: file-backed state + **SQLite** (`sql.js` / WASM) for time tracking. The main content column uses **`ta-container`** (wider on large screens) so the month planner and heatmap have enough horizontal room. A React **error boundary** catches render failures and offers a reload path.
+```bash
+npm test
+```
 
-## Roadmap (v1.1)
+Covers streak helpers, storage logic, and migration utilities in `src/lib`.
 
-Commute / day-type planner and life / exploration list (bucket-style places and events).
+---
+
+## Roadmap for Future
+
+- [ ] Commute / day-type planner
+- [ ] Life & exploration list (bucket-style places and events)
+
+---
+
+## License
+
+MIT — clone it, use it, change it however you want.
+
