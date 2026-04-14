@@ -5,7 +5,7 @@ import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { WeekAddTaskForm, WeekSortableTaskRow } from '@/components/week/WeekSortableTaskRow'
 import { listDropId } from '@/lib/weekCalendar'
-import type { TaskItem } from '@/lib/types'
+import type { LaneTaskCreateOpts, TaskItem } from '@/lib/types'
 
 type Props = {
   dateKey: string
@@ -15,11 +15,7 @@ type Props = {
   defaultCategoryId: string
   todayKey: string
   timeApiOk: boolean | null
-  onAdd: (
-    categoryId: string,
-    text: string,
-    opts?: { plannedStartMinutes?: number | null; plannedEndMinutes?: number | null },
-  ) => void
+  onAdd: (categoryId: string, text: string, opts?: LaneTaskCreateOpts) => void
   onToggleTask: (id: string) => void
   onPatchTask: (id: string, patch: Partial<TaskItem>) => void
   onRemoveTask: (id: string) => void

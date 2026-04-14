@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type KeyboardEvent } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useNavigate } from 'react-router-dom'
@@ -8,7 +8,7 @@ import {
   formatPlannedTimeRange,
   parseTimeInput,
 } from '@/lib/taskPlannedTime'
-import type { TaskItem } from '@/lib/types'
+import type { LaneTaskCreateOpts, TaskItem } from '@/lib/types'
 
 export function WeekSortableTaskRow({
   task,
@@ -38,6 +38,12 @@ export function WeekSortableTaskRow({
     transition,
     opacity: isDragging ? 0.45 : 1,
   }
+  const [editing, setEditing] = useState(false)
+  const [draftText, setDraftText] = useState(task.text)
+  useEffect(() => {
+    if (!editing) setDraftText(task.text)
+  }, [task.text, editing])
+
   const plannedLabel = formatPlannedTimeRange(task)
   return (
     <div
@@ -47,7 +53,9 @@ export function WeekSortableTaskRow({
         'group flex items-start gap-2 rounded-md border px-2 py-2 text-sm text-ta-text shadow-[0_2px_12px_rgba(0,0,0,0.25)] backdrop-blur-sm',
         task.done && task.doneTimeMismatch
           ? 'border-amber-400/50 bg-amber-500/[0.08]'
-          : 'border-white/10 bg-black/25',
+          : task.highPriority && !task.done
+            ? 'border-ta-accent2/45 bg-ta-accent2/[0.06] ring-1 ring-ta-accent2/20'
+            : 'border-white/10 bg-black/25',
       ].join(' ')}
     >
       <button
@@ -75,7 +83,33 @@ export function WeekSortableTaskRow({
         {plannedLabel ? (
           <p className="font-mono text-[9px] text-sky-300/90 leading-tight mb-0.5">{plannedLabel}</p>
         ) : null}
-        <p className={task.done ? 'line-through' : ''}>{task.text}</p>
+        {task.highPriority && !task.done ? (
+          <p className="font-mono text-[8px] uppercase tracking-wider text-ta-accent2/90 mb-0.5">Urgent</p>
+        ) : null}
+        {editing ? (
+          <input
+            autoFocus
+            aria-label="Edit task title"
+            value={draftText}
+            onChange={(e) => setDraftText(e.target.value)}
+            onBlur={() => {
+              const t = draftText.trim()
+              setEditing(false)
+              if (t && t !== task.text) onPatch(task.id, { text: t })
+              else setDraftText(task.text)
+            }}
+            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'Enter') e.currentTarget.blur()
+              if (e.key === 'Escape') {
+                setDraftText(task.text)
+                setEditing(false)
+              }
+            }}
+            className="ta-glass-input w-full px-2 py-1 text-sm text-ta-text font-sans"
+          />
+        ) : (
+          <p className={task.done ? 'line-through' : ''}>{task.text}</p>
+        )}
         <p className="font-mono text-[10px] text-ta-accent/80 mt-0.5">{categoryLabel}</p>
         {task.done && task.completedAt ? (
           <p className="font-mono text-[9px] text-ta-muted/90 mt-1">
@@ -109,6 +143,18 @@ export function WeekSortableTaskRow({
       </div>
       <button
         type="button"
+        className="opacity-0 group-hover:opacity-100 text-ta-muted hover:text-ta-accent font-mono text-xs shrink-0"
+        onClick={() => {
+          setDraftText(task.text)
+          setEditing(true)
+        }}
+        aria-label="Edit task title"
+        title="Edit"
+      >
+        ✎
+      </button>
+      <button
+        type="button"
         className="opacity-0 group-hover:opacity-100 text-ta-muted hover:text-ta-danger font-mono text-xs shrink-0"
         onClick={() => onRemove(task.id)}
         aria-label="Remove task"
@@ -131,11 +177,7 @@ export function WeekAddTaskForm({
   submitLabel?: string
   /** Shown in placeholder e.g. "Apr 9" */
   dateLabel: string
-  onAdd: (
-    categoryId: string,
-    text: string,
-    opts?: { plannedStartMinutes?: number | null; plannedEndMinutes?: number | null },
-  ) => void
+  onAdd: (categoryId: string, text: string, opts?: LaneTaskCreateOpts) => void
 }) {
   const [cat, setCat] = useState(defaultCategoryId)
   useEffect(() => {
@@ -153,6 +195,9 @@ export function WeekAddTaskForm({
         const hasEnd = fd.get('planHasEnd') === 'on'
         const sm = startRaw ? parseTimeInput(startRaw) : null
         const em = hasEnd && endRaw ? parseTimeInput(endRaw) : null
+        const hp = fd.get('highPriority') === 'on'
+        const hpDueRaw = String(fd.get('priorityDeadline') || '')
+        const hpDue = hp && hpDueRaw ? parseTimeInput(hpDueRaw) : null
         let plannedStartMinutes: number | undefined
         let plannedEndMinutes: number | undefined
         if (sm != null) {
@@ -165,6 +210,8 @@ export function WeekAddTaskForm({
           plannedStartMinutes: plannedStartMinutes ?? undefined,
           plannedEndMinutes:
             plannedStartMinutes != null && hasEnd && em != null ? plannedEndMinutes : undefined,
+          highPriority: hp || undefined,
+          priorityDeadlineMinutes: hp && hpDue != null ? clampMinutes(hpDue) : undefined,
         })
         e.currentTarget.reset()
         setCat(defaultCategoryId)
@@ -203,6 +250,19 @@ export function WeekAddTaskForm({
           type="time"
           name="planEnd"
           aria-label="Planned end"
+          className="ta-glass-input w-[6.5rem] px-2 py-1.5 font-mono text-xs text-ta-text"
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="flex items-center gap-1 font-mono text-[9px] text-ta-accent2/90">
+          <input type="checkbox" name="highPriority" className="rounded border-ta-border" />
+          Urgent
+        </label>
+        <span className="font-mono text-[9px] text-ta-muted uppercase">Due by</span>
+        <input
+          type="time"
+          name="priorityDeadline"
+          aria-label="Urgent due by"
           className="ta-glass-input w-[6.5rem] px-2 py-1.5 font-mono text-xs text-ta-text"
         />
       </div>

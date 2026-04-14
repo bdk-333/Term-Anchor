@@ -170,7 +170,9 @@ export function DaySnapshotPage() {
                           'rounded-lg border border-white/[0.06] bg-black/15 px-2 py-2',
                           t.done && t.doneTimeMismatch
                             ? 'border-amber-400/45 bg-amber-500/[0.06]'
-                            : '',
+                            : t.highPriority && !t.done
+                              ? 'border-ta-accent2/35 bg-ta-accent2/[0.05]'
+                              : '',
                         ].join(' ')}
                       >
                         <div className="flex items-start gap-2">
@@ -187,6 +189,11 @@ export function DaySnapshotPage() {
                             {timeLabel ? (
                               <p className="font-mono text-[9px] text-sky-300/90 leading-tight mb-0.5">
                                 {timeLabel}
+                              </p>
+                            ) : null}
+                            {t.highPriority && !t.done ? (
+                              <p className="font-mono text-[8px] uppercase tracking-wider text-ta-accent2/90 mb-0.5">
+                                Urgent
                               </p>
                             ) : null}
                             <span

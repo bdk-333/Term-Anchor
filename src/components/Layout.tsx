@@ -1,6 +1,10 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { APP_DISPLAY_NAME } from '@/config/branding'
 import { HeaderClock } from '@/components/HeaderClock'
+import { HighPriorityReminderModal } from '@/components/HighPriorityReminderModal'
+import { APP_DISPLAY_NAME } from '@/config/branding'
+import { useAppState } from '@/context/AppStateContext'
+import { overdueHighPriorityTasks } from '@/lib/highPriorityReminder'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -11,6 +15,28 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
   ].join(' ')
 
 export function Layout() {
+  const { state } = useAppState()
+  const overdue = useMemo(() => overdueHighPriorityTasks(state), [state])
+  const overdueKey = useMemo(
+    () => overdue.map(({ dayKey, task }) => `${dayKey}:${task.id}`).sort().join('|'),
+    [overdue],
+  )
+  const prevKeyRef = useRef('')
+  const dismissedRef = useRef(false)
+  const [showHpModal, setShowHpModal] = useState(false)
+
+  useEffect(() => {
+    if (overdue.length === 0) {
+      setShowHpModal(false)
+      return
+    }
+    if (overdueKey !== prevKeyRef.current) {
+      prevKeyRef.current = overdueKey
+      dismissedRef.current = false
+    }
+    if (!dismissedRef.current) setShowHpModal(true)
+  }, [overdueKey, overdue.length])
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-[100] isolate ta-glass-header-bar">
@@ -55,6 +81,14 @@ export function Layout() {
       <main className="ta-main-stack flex-1 ta-container py-8 sm:py-10 pb-16 sm:pb-20">
         <Outlet />
       </main>
+      <HighPriorityReminderModal
+        open={showHpModal}
+        items={overdue}
+        onDismiss={() => {
+          dismissedRef.current = true
+          setShowHpModal(false)
+        }}
+      />
     </div>
   )
 }
