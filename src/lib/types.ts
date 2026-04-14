@@ -1,4 +1,4 @@
-export const CURRENT_SCHEMA_VERSION = 6
+export const CURRENT_SCHEMA_VERSION = 7
 
 /** Browser `localStorage` key for planner state (no server). */
 export const STORAGE_KEY = 'termAnchor:v1'
@@ -25,6 +25,14 @@ export type WeekdayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 export type TaskCategory = { id: string; label: string }
 
+/** Optional fields when creating a lane task (Today / Week). */
+export type LaneTaskCreateOpts = {
+  plannedStartMinutes?: number | null
+  plannedEndMinutes?: number | null
+  highPriority?: boolean
+  priorityDeadlineMinutes?: number | null
+}
+
 export type TaskItem = {
   id: string
   categoryId: string
@@ -40,6 +48,10 @@ export type TaskItem = {
   doneTimeMismatch?: boolean
   /** Linked row in SQLite time tracker (`/api/time/tasks`) when using Start timer */
   timeTaskId?: number | null
+  /** Urgent — surfaced in reminder modal when overdue (see `highPriorityReminder`) */
+  highPriority?: boolean
+  /** Same-day deadline for reminders, minutes from local midnight (0–1439). */
+  priorityDeadlineMinutes?: number | null
 }
 
 export type Habit = { id: string; label: string }

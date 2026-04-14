@@ -21,7 +21,7 @@ import { useAppState } from '@/context/AppStateContext'
 import { parseDateKey, toDateKey, weekDayKeys, weekStartKey, weekStartMonday } from '@/lib/dates'
 import { newId } from '@/lib/id'
 import { computeDoneTimeMismatch } from '@/lib/taskPlannedTime'
-import type { TaskItem } from '@/lib/types'
+import type { LaneTaskCreateOpts, TaskItem } from '@/lib/types'
 import { isValidDateKey } from '@/lib/streak'
 import { calendarDropId, parseDropToDateKey } from '@/lib/weekCalendar'
 import { deleteTask } from '@/lib/timeApi'
@@ -47,11 +47,7 @@ function DayColumn({
   isToday: boolean
   items: TaskItem[]
   categoryLabels: Map<string, string>
-  onAdd: (
-    categoryId: string,
-    text: string,
-    opts?: { plannedStartMinutes?: number | null; plannedEndMinutes?: number | null },
-  ) => void
+  onAdd: (categoryId: string, text: string, opts?: LaneTaskCreateOpts) => void
   onToggleTask: (id: string) => void
   onPatchTask: (id: string, patch: Partial<TaskItem>) => void
   onRemoveTask: (id: string) => void
@@ -228,12 +224,7 @@ export function WeekPage() {
     }))
   }
 
-  function addTask(
-    dateKey: string,
-    categoryId: string,
-    text: string,
-    opts?: { plannedStartMinutes?: number | null; plannedEndMinutes?: number | null },
-  ) {
+  function addTask(dateKey: string, categoryId: string, text: string, opts?: LaneTaskCreateOpts) {
     const t = text.trim()
     if (!t) return
     setState((s) => {
@@ -252,6 +243,11 @@ export function WeekPage() {
                 done: false,
                 plannedStartMinutes: opts?.plannedStartMinutes ?? undefined,
                 plannedEndMinutes: opts?.plannedEndMinutes ?? undefined,
+                highPriority: opts?.highPriority === true ? true : undefined,
+                priorityDeadlineMinutes:
+                  opts?.highPriority === true && opts.priorityDeadlineMinutes != null
+                    ? opts.priorityDeadlineMinutes
+                    : undefined,
               },
             ],
           },

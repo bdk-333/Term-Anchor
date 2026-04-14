@@ -30,7 +30,7 @@ import {
 } from '@/lib/taskPlannedTime'
 import { daysUntil, semesterProgress, toDateKey } from '@/lib/dates'
 import { newId } from '@/lib/id'
-import type { AppState, DayLogSection, DaySection, TaskItem } from '@/lib/types'
+import type { AppState, DayLogSection, DaySection, LaneTaskCreateOpts, TaskItem } from '@/lib/types'
 import { streakCount, streakPips } from '@/lib/streak'
 import { deleteTask } from '@/lib/timeApi'
 
@@ -73,6 +73,12 @@ function SortableDashboardTask({
   onStartTimer: (id: string) => void
   timeApiOk: boolean | null
 }) {
+  const [editing, setEditing] = useState(false)
+  const [draftText, setDraftText] = useState(task.text)
+  useEffect(() => {
+    if (!editing) setDraftText(task.text)
+  }, [task.text, editing])
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   })
@@ -91,7 +97,9 @@ function SortableDashboardTask({
           ? 'border-ta-accent/45 bg-ta-accent/[0.07] shadow-[0_0_20px_-8px_rgba(232,255,71,0.2)]'
           : mismatch
             ? 'border-amber-400/55 bg-amber-500/[0.07] shadow-[0_0_20px_-8px_rgba(251,191,36,0.25)]'
-            : 'border-white/[0.06] bg-black/15',
+            : task.highPriority && !task.done
+              ? 'border-ta-accent2/45 bg-ta-accent2/[0.06] ring-1 ring-ta-accent2/25'
+              : 'border-white/[0.06] bg-black/15',
       ].join(' ')}
     >
       <div className="flex items-start gap-2">
@@ -120,11 +128,37 @@ function SortableDashboardTask({
           {plannedLabel ? (
             <p className="font-mono text-[10px] text-sky-300/90 leading-tight mb-0.5">{plannedLabel}</p>
           ) : null}
-          <span
-            className={`text-sm block leading-snug ${task.done ? 'line-through' : 'text-ta-text'}`}
-          >
-            {task.text}
-          </span>
+          {task.highPriority && !task.done ? (
+            <p className="font-mono text-[9px] uppercase tracking-wider text-ta-accent2/90 mb-0.5">Urgent</p>
+          ) : null}
+          {editing ? (
+            <input
+              autoFocus
+              aria-label="Edit task title"
+              value={draftText}
+              onChange={(e) => setDraftText(e.target.value)}
+              onBlur={() => {
+                const t = draftText.trim()
+                setEditing(false)
+                if (t && t !== task.text) onPatch(task.id, { text: t })
+                else setDraftText(task.text)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                if (e.key === 'Escape') {
+                  setDraftText(task.text)
+                  setEditing(false)
+                }
+              }}
+              className="ta-glass-input w-full px-2 py-1.5 text-sm text-ta-text font-sans"
+            />
+          ) : (
+            <span
+              className={`text-sm block leading-snug ${task.done ? 'line-through' : 'text-ta-text'}`}
+            >
+              {task.text}
+            </span>
+          )}
           {task.done && task.completedAt ? (
             <p className="font-mono text-[9px] text-ta-muted/90 mt-1">
               Done at{' '}
@@ -162,6 +196,18 @@ function SortableDashboardTask({
             </p>
           ) : null}
         </div>
+        <button
+          type="button"
+          className="opacity-0 group-hover:opacity-100 text-ta-muted hover:text-ta-accent font-mono text-xs shrink-0"
+          onClick={() => {
+            setDraftText(task.text)
+            setEditing(true)
+          }}
+          aria-label="Edit task title"
+          title="Edit"
+        >
+          ✎
+        </button>
         <button
           type="button"
           className="opacity-0 group-hover:opacity-100 text-ta-muted hover:text-ta-danger font-mono text-xs shrink-0"
@@ -274,11 +320,7 @@ export function DashboardPage() {
     patchTodayTasks(bucket.map((t) => (t.id === id ? { ...t, ...patch } : t)))
   }
 
-  function addTask(
-    categoryId: string,
-    text: string,
-    opts?: { plannedStartMinutes?: number | null; plannedEndMinutes?: number | null },
-  ) {
+  function addTask(categoryId: string, text: string, opts?: LaneTaskCreateOpts) {
     const t = text.trim()
     if (!t) return
     patchTodayTasks([
@@ -290,6 +332,11 @@ export function DashboardPage() {
         done: false,
         plannedStartMinutes: opts?.plannedStartMinutes ?? undefined,
         plannedEndMinutes: opts?.plannedEndMinutes ?? undefined,
+        highPriority: opts?.highPriority === true ? true : undefined,
+        priorityDeadlineMinutes:
+          opts?.highPriority === true && opts.priorityDeadlineMinutes != null
+            ? opts.priorityDeadlineMinutes
+            : undefined,
       },
     ])
   }
@@ -611,6 +658,9 @@ export function DashboardPage() {
                       const hasEnd = fd.get('planHasEnd') === 'on'
                       const sm = startRaw ? parseTimeInput(startRaw) : null
                       const em = hasEnd && endRaw ? parseTimeInput(endRaw) : null
+                      const hp = fd.get('highPriority') === 'on'
+                      const hpDueRaw = String(fd.get('priorityDeadline') || '')
+                      const hpDue = hp && hpDueRaw ? parseTimeInput(hpDueRaw) : null
                       let plannedStartMinutes: number | undefined
                       let plannedEndMinutes: number | undefined
                       if (sm != null) {
@@ -625,6 +675,9 @@ export function DashboardPage() {
                           plannedStartMinutes != null && hasEnd && em != null
                             ? plannedEndMinutes
                             : undefined,
+                        highPriority: hp || undefined,
+                        priorityDeadlineMinutes:
+                          hp && hpDue != null ? clampMinutes(hpDue) : undefined,
                       })
                       e.currentTarget.reset()
                     }}
@@ -653,6 +706,19 @@ export function DashboardPage() {
                         type="time"
                         name="planEnd"
                         aria-label="Planned end for new task"
+                        className="ta-glass-input w-[7rem] px-1.5 py-1 font-mono text-[10px] text-ta-text"
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="flex items-center gap-1 font-mono text-[9px] text-ta-accent2/90">
+                        <input type="checkbox" name="highPriority" className="rounded border-ta-border" />
+                        Urgent (due today)
+                      </label>
+                      <span className="font-mono text-[9px] text-ta-muted uppercase">Due by</span>
+                      <input
+                        type="time"
+                        name="priorityDeadline"
+                        aria-label="Urgent due-by time (optional)"
                         className="ta-glass-input w-[7rem] px-1.5 py-1 font-mono text-[10px] text-ta-text"
                       />
                       <button

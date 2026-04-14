@@ -314,6 +314,7 @@ export function DashboardTimerSections() {
           <span className="text-ta-text/85">Others</span> lane for tracking. Optionally attach a project (scoped
           to a lane below) after you create it.
         </p>
+        <div className="max-h-[272px] min-h-0 overflow-y-auto ta-scrollbar pr-1 -mr-0.5">
         <ul className="space-y-3">
           {sortedTasks.map((t) => (
             <li key={t.id} className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2">
@@ -362,7 +363,8 @@ export function DashboardTimerSections() {
             </li>
           ))}
         </ul>
-        <div className="pt-2 border-t border-white/[0.08] space-y-2">
+        </div>
+        <div className="shrink-0 pt-2 border-t border-white/[0.08] space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-wider text-ta-muted">Add task</p>
           <div className="flex flex-col gap-2">
             <input
@@ -406,6 +408,7 @@ export function DashboardTimerSections() {
           lanes on Today, plus <span className="text-ta-text/85">Others</span>). Tasks in the list above can
           reference these projects; unassigned tasks stay in the Others lane.
         </p>
+        <div className="max-h-[200px] min-h-0 overflow-y-auto ta-scrollbar pr-1 -mr-0.5">
         <ul className="space-y-3">
           {projects.map((p) => (
             <li key={p.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
@@ -459,7 +462,8 @@ export function DashboardTimerSections() {
             </li>
           ))}
         </ul>
-        <div className="pt-2 border-t border-white/[0.08] space-y-2">
+        </div>
+        <div className="shrink-0 pt-2 border-t border-white/[0.08] space-y-2">
           <p className="font-mono text-[10px] uppercase tracking-wider text-ta-muted">Add project</p>
           <div className="flex flex-col sm:flex-row gap-2 flex-wrap sm:items-center">
             <input

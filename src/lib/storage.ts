@@ -187,6 +187,31 @@ export function migrate(raw: unknown): AppState {
     if (v === 6) {
       state = { ...state, schemaVersion: 6 }
     }
+    if (v === 7) {
+      const tb = { ...(state.tasksByDay ?? {}) }
+      for (const dk of Object.keys(tb)) {
+        const items = tb[dk]?.items ?? []
+        tb[dk] = {
+          items: items.map((t: TaskItem) => {
+            const raw = t.priorityDeadlineMinutes
+            let pdm: number | null | undefined
+            if (typeof raw === 'number' && Number.isFinite(raw)) {
+              pdm = Math.max(0, Math.min(1439, Math.floor(raw)))
+            } else if (raw === null) {
+              pdm = null
+            } else {
+              pdm = undefined
+            }
+            return {
+              ...t,
+              highPriority: t.highPriority === true,
+              priorityDeadlineMinutes: pdm,
+            }
+          }),
+        }
+      }
+      state = { ...state, tasksByDay: tb, schemaVersion: 7 }
+    }
   }
 
   if (!state.taskCategories?.length) state.taskCategories = defaultCategories()
